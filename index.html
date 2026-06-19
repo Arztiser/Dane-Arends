@@ -165,19 +165,20 @@ section{
 
 .about-img{
     height:360px;
-    background:#222;
+    width:100%;
     border-radius:12px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:#888;
+    overflow:hidden;
+    border:1px solid #222;
+    position:relative;
+}
 
-    .about-img img{
+.about-img img{
     width:100%;
     height:100%;
     object-fit:cover;
+    object-position:center;
     display:block;
-    }
+}
 }
 
 .card{
