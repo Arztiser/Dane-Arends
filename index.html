@@ -301,6 +301,34 @@ section{
     transition:0.3s;
 }
 
+    .live-pill{
+    font-family:"Bebas Neue";
+    color:var(--red);
+    letter-spacing:2px;
+    font-size:1rem;
+    opacity:0.9;
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+
+/* subtle pulse dot only (no layout shift risk) */
+.live-pill::before{
+    content:"";
+    width:8px;
+    height:8px;
+    background:var(--red);
+    border-radius:50%;
+    display:inline-block;
+    animation:pulseDot 1.6s infinite;
+}
+
+@keyframes pulseDot{
+    0%{transform:scale(1); opacity:1;}
+    50%{transform:scale(1.6); opacity:0.4;}
+    100%{transform:scale(1); opacity:1;}
+}
+
 /* ===== SOCIAL ===== */
 .socials{
     display:flex;
