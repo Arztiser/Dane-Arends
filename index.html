@@ -156,21 +156,30 @@ section{
     100%{width:80px;opacity:0.5;}
 }
 
-/* ===== ABOUT ===== */
+/* ===== ABOUT SECTION (STACKED MODULE STYLE) ===== */
 .about{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:40px;
+    display:flex;
+    flex-direction:column;
     align-items:center;
+    gap:20px;
 }
 
+/* IMAGE BLOCK */
 .about-img{
-    height:360px;
     width:100%;
+    max-width:700px;
+    height:380px;
     border-radius:12px;
     overflow:hidden;
     border:1px solid #222;
-    position:relative;
+    box-shadow:0 0 25px rgba(230,25,43,0.08);
+    transition:0.3s ease;
+}
+
+/* subtle ESPN-style hover */
+.about-img:hover{
+    transform:scale(1.02);
+    box-shadow:0 0 35px rgba(230,25,43,0.18);
 }
 
 .about-img img{
@@ -180,13 +189,21 @@ section{
     object-position:center;
     display:block;
 }
-}
 
+/* TEXT CARD (uses your existing system style) */
 .card{
     background:var(--dark);
     padding:28px;
     border-left:3px solid var(--red);
     border-radius:12px;
+    width:100%;
+    max-width:700px;
+}
+
+/* OPTIONAL: make About card feel slightly more “broadcast clean” */
+.about .card p{
+    color:#ccc;
+    line-height:1.6;
 }
 
 /* ===== STATS ===== */
@@ -341,32 +358,25 @@ section{
 </header>
 
 <!-- ABOUT -->
-<section>
-<div class="title">ABOUT</div>
+<section class="about">
 
-<div class="op">
-    <h3>DANE ARENDS</h3>
+    <div class="title">ABOUT</div>
 
-    <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
+    <!-- IMAGE (standalone, not inside card) -->
+    <div class="about-img">
+        <img src="3A2A3680.jpg" alt="Basketball Image">
+    </div>
 
-        <img src="3A2A3680.jpg" alt="Basketball Image"
-        style="
-            width:160px;
-            height:160px;
-            object-fit:cover;
-            border-radius:12px;
-            border:1px solid #222;
-        ">
-
-        <p style="color:#ccc; line-height:1.6; flex:1;">
+    <!-- CARD (text only) -->
+    <div class="op">
+        <h3>DANE ARENDS</h3>
+        <p>
             Behind-the-scenes sports management for basketball and baseball programs.
             Focused on game-day execution, organization, and supporting team operations.
         </p>
-
     </div>
-</div>
-</section>
 
+</section>
 <!-- STATS -->
 <section>
 <div class="title">LIVE STATS</div>
