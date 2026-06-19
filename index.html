@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dane Arends | Broadcast Engine</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Changa+One:ital@1&family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+:root{
+    --red:#E6192B;
+    --black:#0b0b0b;
+    --dark:#141414;
+    --white:#fff;
+    --text:#cfcfcf;
+}
+
+/* RESET */
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+    background:var(--black);
+    color:var(--white);
+    font-family:Inter,sans-serif;
+    overflow-x:hidden;
+}
+
+/* ===== HEADER ===== */
+.header{
+    position:fixed;
+    top:0;
+    width:100%;
+    z-index:1000;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 18px;
+    background:#0d0d0df2;
+    border-bottom:2px solid var(--red);
+}
+
+.header-title{
+    font-family:"Bebas Neue";
+    font-size:2rem;
+    letter-spacing:4px;
+}
+
+.clock{
+    font-family:"Bebas Neue";
+    color:var(--red);
+    font-size:1.2rem;
+}
+
+/* ===== TICKER ===== */
+.ticker{
+    margin-top:55px;
+    background:var(--dark);
+    white-space:nowrap;
+    overflow:hidden;
+}
+.ticker span{
+    display:inline-block;
+    padding:10px;
+    font-family:"Bebas Neue";
+    animation:scroll 18s linear infinite;
+}
+
+@keyframes scroll{
+    from{transform:translateX(100%);}
+    to{transform:translateX(-100%);}
+}
+
+/* ===== INTRO ===== */
+.intro{
+    height:80vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    position:relative;
+    background:radial-gradient(circle,#1a1a1a,#000);
+    overflow:hidden;
+}
+
+/* spotlight */
+.intro::before{
+    content:"";
+    position:absolute;
+    width:200%;
+    height:200%;
+    background:radial-gradient(circle,rgba(230,25,43,0.15),transparent 60%);
+    animation:spot 5s infinite linear;
+}
+
+@keyframes spot{
+    0%{transform:translate(-20%,-20%) scale(1);}
+    50%{transform:translate(20%,20%) scale(1.2);}
+    100%{transform:translate(-20%,-20%) scale(1);}
+}
+
+/* zoom intro */
+.intro-content{
+    animation:zoom 1.2s ease;
+    z-index:2;
+}
+
+@keyframes zoom{
+    from{transform:scale(0.6);opacity:0;}
+    to{transform:scale(1);opacity:1;}
+}
+
+.intro h1{
+    font-family:"Changa One";
+    font-size:5.2rem;
+}
+
+.intro h2{
+    font-family:"Bebas Neue";
+    color:var(--red);
+    margin-top:10px;
+}
+
+/* ===== SECTIONS ===== */
+section{
+    padding:90px 10%;
+    position:relative;
+}
+
+.title{
+    font-family:"Bebas Neue";
+    font-size:2.6rem;
+    text-align:center;
+    margin-bottom:40px;
+    position:relative;
+}
+
+/* RED UNDERLINE GLOW */
+.title::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    bottom:-10px;
+    transform:translateX(-50%);
+    width:120px;
+    height:3px;
+    background:var(--red);
+    box-shadow:0 0 12px var(--red);
+    animation:pulse 2s infinite;
+}
+
+@keyframes pulse{
+    0%{width:80px;opacity:0.5;}
+    50%{width:140px;opacity:1;}
+    100%{width:80px;opacity:0.5;}
+}
+
+/* ===== ABOUT ===== */
+.about{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:40px;
+    align-items:center;
+}
+
+.about-img{
+    height:360px;
+    background:#222;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#888;
+}
+
+.card{
+    background:var(--dark);
+    padding:28px;
+    border-left:3px solid var(--red);
+    border-radius:12px;
+}
+
+/* ===== STATS ===== */
+.stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:18px;
+}
+
+.stat{
+    background:var(--dark);
+    padding:18px;
+    text-align:center;
+    border-radius:10px;
+    border:1px solid #222;
+}
+
+.stat h2{
+    font-family:"Bebas Neue";
+    color:var(--red);
+    font-size:2.3rem;
+    animation:pulseStat 3s infinite;
+}
+
+@keyframes pulseStat{
+    0%{opacity:0.7;}
+    50%{opacity:1;}
+    100%{opacity:0.7;}
+}
+
+/* ===== SIDELINE OPS ===== */
+.ops{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:15px;
+}
+
+.op{
+    background:var(--dark);
+    padding:20px;
+    border-radius:12px;
+    border-left:3px solid var(--red);
+    transition:0.3s;
+}
+
+.op:hover{
+    transform:translateY(-6px);
+    box-shadow:0 0 25px rgba(230,25,43,0.25);
+}
+
+.op h3{
+    font-family:"Bebas Neue";
+    color:var(--red);
+}
+
+/* ===== SCOUTING REPORT ===== */
+.scouting{
+    max-width:850px;
+    margin:auto;
+    background:var(--dark);
+    border-left:3px solid var(--red);
+    padding:25px;
+    border-radius:12px;
+    color:#ccc;
+    line-height:1.7;
+    box-shadow:0 0 25px rgba(230,25,43,0.08);
+}
+
+/* ===== FAQ ===== */
+.faq{
+    max-width:800px;
+    margin:auto;
+}
+
+.item{
+    background:var(--dark);
+    margin-bottom:10px;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+.q{
+    padding:18px;
+    cursor:pointer;
+    font-family:"Bebas Neue";
+    display:flex;
+    justify-content:space-between;
+}
+
+.a{
+    max-height:0;
+    overflow:hidden;
+    padding:0 18px;
+    color:var(--text);
+    transition:0.3s;
+}
+
+/* ===== SOCIAL ===== */
+.socials{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:15px;
+}
+
+.social{
+    padding:14px 18px;
+    background:var(--dark);
+    border-radius:12px;
+    text-decoration:none;
+    color:white;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    border:1px solid #222;
+    transition:0.3s;
+}
+
+.social:hover{
+    background:var(--red);
+    transform:translateY(-6px);
+}
+
+/* MOBILE */
+@media(max-width:768px){
+    .intro h1{font-size:3.2rem;}
+    .about{grid-template-columns:1fr;}
+    .header-title{font-size:1.5rem;}
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <div class="header-title">DANE ARENDS</div>
+    <div class="clock" id="clock">12:00 AM</div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker">
+<span>🏀 Basketball • ⚾ Baseball • 📊 Stats • 🧠 Leadership • 🎥 Game Ops • Execution Engine •</span>
+</div>
+
+<!-- INTRO -->
+<header class="intro">
+<div class="intro-content">
+<h1 id="introText">DANE ARENDS</h1>
+<h2>HIGH SCHOOL SPORTS MANAGER</h2>
+</div>
+</header>
+
+<!-- ABOUT -->
+<section class="about">
+<div class="about-img">ACTION SHOT</div>
+
+<div class="card">
+<h2 style="font-family:'Bebas Neue';color:var(--red);">ABOUT</h2>
+<p style="color:#ccc;margin-top:10px;">
+Behind-the-scenes sports management for basketball and baseball programs.
+</p>
+</div>
+</section>
+
+<!-- STATS -->
+<section>
+<div class="title">LIVE STATS</div>
+
+<div class="stats">
+<div class="stat"><h2>123</h2><p>Games</p></div>
+<div class="stat"><h2>2</h2><p>Years</p></div>
+<div class="stat"><h2>100%</h2><p>Reliability</p></div>
+<div class="stat"><h2>∞</h2><p>Effort</p></div>
+</div>
+</section>
+
+<!-- SIDELINE OPS -->
+<section>
+<div class="title">SIDELINE OPERATIONS</div>
+
+<div class="ops">
+    <div class="op">
+        <h3>GAME PREP</h3>
+        <p>Equipment setup, bench organization, and pre-game structure.</p>
+    </div>
+
+    <div class="op">
+        <h3>IN-GAME CONTROL</h3>
+        <p>Water, subs tracking, stat recording, and real-time support.</p>
+    </div>
+
+    <div class="op">
+        <h3>COACH SUPPORT</h3>
+        <p>Helping staff stay focused on strategy, not logistics.</p>
+    </div>
+
+    <div class="op">
+        <h3>POST-GAME RESET</h3>
+        <p>Cleanup, data notes, and preparing for the next matchup.</p>
+    </div>
+</div>
+</section>
+
+<!-- SCOUTING REPORT -->
+<section>
+<div class="title">SCOUTING REPORT</div>
+
+<div class="scouting">
+<p>
+High-impact support presence within varsity basketball and baseball programs. Operates as a behind-the-scenes control layer for game-day execution.
+</p>
+<br>
+<p>
+Strengths include rapid equipment coordination, real-time stat tracking, bench organization, and maintaining operational flow under pressure environments.
+</p>
+<br>
+<p style="color:#fff;font-weight:600;">
+Verdict: Reliable system asset — consistent performance across all game conditions.
+</p>
+</div>
+</section>
+
+<!-- FAQ -->
+<section>
+<div class="title">FAQ</div>
+
+<div class="faq">
+<div class="item">
+<div class="q">What do you do? <span>+</span></div>
+<div class="a">Team operations, stats tracking, equipment, and game-day execution.</div>
+</div>
+
+<div class="item">
+<div class="q">Is it stressful? <span>+</span></div>
+<div class="a">Yes — but it builds leadership under pressure.</div>
+</div>
+</div>
+</section>
+
+<!-- CONNECT -->
+<section>
+<div class="title">CONNECT</div>
+
+<div class="socials">
+<a class="social" href="https://instagram.com"><i class="fa-brands fa-instagram"></i> Instagram</a>
+<a class="social" href="https://twitter.com"><i class="fa-brands fa-x-twitter"></i> Twitter</a>
+<a class="social" href="https://github.com"><i class="fa-brands fa-github"></i> GitHub</a>
+</div>
+</section>
+
+<script>
+/* FAQ */
+document.querySelectorAll(".q").forEach(q=>{
+    q.onclick=()=>{
+        let a=q.nextElementSibling;
+        a.style.maxHeight = a.style.maxHeight ? null : a.scrollHeight + "px";
+    }
+});
+
+/* INTRO TEXT */
+setTimeout(()=>{
+    document.getElementById("introText").innerText = "DANE ARENDS";
+},1200);
+
+/* CLOCK */
+function updateClock(){
+    const now = new Date();
+    let h = now.getHours();
+    const m = String(now.getMinutes()).padStart(2,'0');
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12;
+    h = h ? h : 12;
+    document.getElementById("clock").innerText = `${h}:${m} ${ampm}`;
+}
+setInterval(updateClock,1000);
+updateClock();
+</script>
+
+</body>
+</html>
