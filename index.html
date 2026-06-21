@@ -607,11 +607,6 @@ setTimeout(() => {
     aboutPhoto.style.opacity = "1";
 }, 250);
 });
-const yearElement = document.getElementById("year");
-
-if (yearElement) {
-    yearElement.textContent = new Date().getFullYear();
-}
 </script>
 
 <div id="archiveNotice">
@@ -620,6 +615,6 @@ if (yearElement) {
     
 </body>
 <footer style="text-align:center;padding:30px;color:#777;">
-    © <span id="year"></span> Dane Arends • Sports Manager
-</footer>    
+    © <script>document.write(new Date().getFullYear())</script> Dane Arends • Sports Manager
+</footer>
 </html>
