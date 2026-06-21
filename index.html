@@ -361,6 +361,28 @@ section{
     .about{grid-template-columns:1fr;}
     .header-title{font-size:1.5rem;}
 }
+
+#archiveNotice{
+    position:fixed;
+    top:90px;
+    left:50%;
+    transform:translateX(-50%);
+    background:rgba(230,25,43,0.95);
+    color:white;
+    padding:12px 20px;
+    border-radius:10px;
+    font-family:"Bebas Neue";
+    letter-spacing:2px;
+    z-index:9999;
+    opacity:0;
+    pointer-events:none;
+    transition:0.4s;
+}
+
+#archiveNotice.show{
+    opacity:1;
+}
+    
 </style>
 </head>
 
@@ -395,8 +417,7 @@ section{
     <div class="title">ABOUT</div>
 
     <!-- IMAGE (standalone, not inside card) -->
-    <div class="about-img">
-        <img src="3A2A3680.jpg" alt="Basketball Image">
+    <img id="aboutPhoto" src="3A2A3680.jpg" alt="Basketball Image">
     </div>
 
     <!-- CARD (text only) -->
@@ -520,7 +541,60 @@ function updateClock(){
 }
 setInterval(updateClock,1000);
 updateClock();
+
+    /* SECRET PHOTO ARCHIVE */
+
+let nameClicks = 0;
+let archiveUnlocked = false;
+
+const photos = [
+    "3A2A3680.jpg",
+    "retro.jpg",
+    "pixel.jpg",
+    "sportscard.jpg",
+    "cyberpunk.jpg"
+];
+
+let currentPhoto = 0;
+
+const headerTitle = document.querySelector(".header-title");
+const aboutPhoto = document.getElementById("aboutPhoto");
+const archiveNotice = document.getElementById("archiveNotice");
+
+headerTitle.addEventListener("click", () => {
+
+    if(!archiveUnlocked){
+
+        nameClicks++;
+
+        if(nameClicks >= 5){
+
+            archiveUnlocked = true;
+
+            archiveNotice.classList.add("show");
+
+            setTimeout(()=>{
+                archiveNotice.classList.remove("show");
+            },2500);
+
+        }
+
+        return;
+    }
+
+    currentPhoto++;
+
+    if(currentPhoto >= photos.length){
+        currentPhoto = 0;
+    }
+
+    aboutPhoto.src = photos[currentPhoto];
+});
 </script>
 
+<div id="archiveNotice">
+    MEDIA ARCHIVE UNLOCKED
+</div>
+    
 </body>
 </html>
