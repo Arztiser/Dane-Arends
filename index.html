@@ -607,6 +607,7 @@ setTimeout(() => {
     aboutPhoto.style.opacity = "1";
 }, 250);
 });
+    document.getElementById("year").textContent = new Date().getFullYear();
 </script>
 
 <div id="archiveNotice">
@@ -615,6 +616,6 @@ setTimeout(() => {
     
 </body>
 <footer style="text-align:center;padding:30px;color:#777;">
-    © 2026 Dane Arends • Sports Manager
+    © <span id="year"></span> Dane Arends • Sports Manager
 </footer>    
 </html>
