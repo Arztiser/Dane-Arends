@@ -74,19 +74,31 @@ body{
 .ticker{
     margin-top:55px;
     background:var(--dark);
-    white-space:nowrap;
     overflow:hidden;
-}
-.ticker span{
-    display:inline-block;
-    padding:10px;
-    font-family:"Bebas Neue";
-    animation:scroll 18s linear infinite;
+    white-space:nowrap;
 }
 
-@keyframes scroll{
-    from{transform:translateX(100%);}
-    to{transform:translateX(-100%);}
+.ticker-track{
+    display:flex;
+    width:max-content;
+    animation:tickerScroll 18s linear infinite;
+    will-change:transform;
+}
+
+.ticker-track span{
+    padding-right:60px; /* spacing between repeats */
+    padding:10px 60px 10px 0;
+    font-family:"Bebas Neue";
+    flex-shrink:0;
+}
+
+@keyframes tickerScroll{
+    from{
+        transform:translateX(0);
+    }
+    to{
+        transform:translateX(-50%);
+    }
 }
 
 /* ===== INTRO ===== */
