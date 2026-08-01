@@ -707,6 +707,17 @@ setTimeout(() => {
 
 /* ===== TICKER: center on load, then seamlessly loop ===== */
 
+let tickerAnimating = false;
+
+function positionTickerBelowHeader(){
+    const header = document.querySelector(".header");
+    const ticker = document.querySelector(".ticker");
+    if(!header || !ticker) return;
+    // measure the header's real rendered height instead of assuming a
+    // fixed value, so the ticker never sits partly hidden underneath it
+    ticker.style.marginTop = header.getBoundingClientRect().height + "px";
+}
+
 function measureAndSetTicker(){
     const track = document.getElementById("tickerTrack");
     const win = track.parentElement; // .ticker-window
@@ -737,9 +748,21 @@ function measureAndSetTicker(){
     const pxPerSecond = 80;
     const duration = Math.max(cycleDist / pxPerSecond, 6);
     track.style.setProperty("--duration", duration.toFixed(2) + "s");
+
+    // if the loop is already running and something (a resize, a late-loading
+    // font) changes these numbers, DON'T let the animation re-target itself
+    // mid-flight — that's what causes a visible jump partway through the
+    // scroll. Cleanly restart the animation from the new centered position
+    // instead.
+    if(tickerAnimating){
+        track.classList.remove("animate");
+        void track.offsetWidth; // force reflow so the removal actually takes effect
+        track.classList.add("animate");
+    }
 }
 
 function initTicker(){
+    positionTickerBelowHeader();
     measureAndSetTicker();
 
     const track = document.getElementById("tickerTrack");
@@ -748,17 +771,24 @@ function initTicker(){
     // because .animate's "from" keyframe uses the same --start value,
     // there's no jump when the animation kicks in.
     setTimeout(() => {
+        tickerAnimating = true;
         track.classList.add("animate");
     }, 2500);
 }
 
 // re-measure once web fonts are actually loaded, so widths are accurate
 if(document.fonts && document.fonts.ready){
-    document.fonts.ready.then(measureAndSetTicker);
+    document.fonts.ready.then(() => {
+        positionTickerBelowHeader();
+        measureAndSetTicker();
+    });
 }
 
 window.addEventListener("DOMContentLoaded", initTicker);
-window.addEventListener("resize", measureAndSetTicker);
+window.addEventListener("resize", () => {
+    positionTickerBelowHeader();
+    measureAndSetTicker();
+});
 
 </script>
 
