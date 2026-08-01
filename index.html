@@ -722,6 +722,12 @@ function ensureEnoughTickerCopies(track, win){
     // there are enough repeated copies to fully tile the visible window at
     // all times. On a wide desktop window, 2 copies isn't nearly enough —
     // that's what was causing the scroll to run out of content and jump.
+    //
+    // Copies are only ever ADDED here, never removed. Trimming them back
+    // down on a later remeasure risked deleting a copy that was still
+    // needed for the current frame, which is what could make the text
+    // vanish before finishing its scroll. A handful of extra off-screen
+    // copies costs nothing visually, so it's not worth the risk.
     const items = track.querySelectorAll("span");
     if(items.length === 0) return;
 
@@ -731,18 +737,14 @@ function ensureEnoughTickerCopies(track, win){
     if(cycle <= 0) return;
 
     const winWidth = win.getBoundingClientRect().width;
-    // enough copies to cover the window twice over, so there's always a
-    // full extra copy waiting off-screen to scroll in
-    const needed = Math.ceil((winWidth * 2) / cycle) + 1;
+    // generously enough copies to cover 3x the window, so there's always
+    // plenty of content waiting off-screen to scroll in
+    const needed = Math.ceil((winWidth * 3) / cycle) + 2;
 
     let current = items.length;
     while(current < needed){
         track.appendChild(items[0].cloneNode(true));
         current++;
-    }
-    while(current > needed && current > 2){
-        track.removeChild(track.lastElementChild);
-        current--;
     }
 }
 
@@ -817,9 +819,14 @@ if(document.fonts && document.fonts.ready){
 }
 
 window.addEventListener("DOMContentLoaded", initTicker);
+
+let tickerResizeTimeout = null;
 window.addEventListener("resize", () => {
-    positionTickerBelowHeader();
-    measureAndSetTicker();
+    clearTimeout(tickerResizeTimeout);
+    tickerResizeTimeout = setTimeout(() => {
+        positionTickerBelowHeader();
+        measureAndSetTicker();
+    }, 200);
 });
 
 </script>
