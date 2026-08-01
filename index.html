@@ -71,46 +71,43 @@ body{
 }
 
 /* ===== TICKER ===== */
+
 .ticker{
     margin-top:55px;
     height:42px;
     background:var(--dark);
     overflow:hidden;
+    position:relative;
     display:flex;
     align-items:center;
-    position:relative;
 }
 
 .ticker-track{
+    position:absolute;
     display:flex;
     gap:80px;
     white-space:nowrap;
     font-family:"Bebas Neue";
-
-    /* Starts centered */
-    justify-content:center;
-    width:100%;
-
-    animation:none;
+    font-size:1.1rem;
+    will-change:transform;
 }
 
 .ticker-track span{
     flex:none;
-    font-size:1.1rem;
 }
 
-.ticker-track.play{
-    width:max-content;
-    justify-content:flex-start;
-    animation:ticker 28s linear infinite;
+/* Animation starts only after JS adds this class */
+.ticker-track.animate{
+    animation:tickerMove 30s linear infinite;
 }
 
-@keyframes ticker{
+@keyframes tickerMove{
     from{
-        transform:translateX(100%);
+        transform:translateX(var(--start));
     }
+
     to{
-        transform:translateX(calc(-50% - 40px));
+        transform:translateX(calc(var(--start) - 50% - 40px));
     }
 }
     
@@ -449,8 +446,8 @@ section{
 <!-- TICKER -->
 <div class="ticker">
     <div class="ticker-track" id="tickerTrack">
-        <span>Basketball • Baseball • Leadership • Team Support • Reliability</span>
-        <span>Basketball • Baseball • Leadership • Team Support • Reliability</span>
+        <span>Basketball • Baseball • Leadership • Team Support • Reliability •</span>
+        <span>Basketball • Baseball • Leadership • Team Support • Reliability •</span>
     </div>
 </div>
 
@@ -657,21 +654,30 @@ setTimeout(() => {
 }, 250);
 });
 
-const staticTicker = document.getElementById("tickerStatic");
-const movingTicker = document.getElementById("tickerTrack");
+const ticker = document.getElementById("tickerTrack");
 
-if (staticTicker && movingTicker) {
-    setTimeout(() => {
-        staticTicker.style.opacity = "0";
+window.addEventListener("load", () => {
 
+    // Wait until fonts are rendered
+    requestAnimationFrame(() => {
+
+        const tickerWidth = ticker.scrollWidth / 2;
+        const screenWidth = window.innerWidth;
+
+        // Center ONE copy of the ticker
+        const start = (screenWidth - tickerWidth) / 2;
+
+        ticker.style.setProperty("--start", start + "px");
+        ticker.style.transform = `translateX(${start}px)`;
+
+        // Pause for 2.5 seconds
         setTimeout(() => {
-            staticTicker.remove(); // Removes it from the page
-            movingTicker.classList.add("animate");
-        }, 600);
+            ticker.classList.add("animate");
+        },2500);
 
-    }, 2500);
-}
-    
+    });
+
+});    
 </script>
 
 <div id="archiveNotice">
