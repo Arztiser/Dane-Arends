@@ -76,39 +76,33 @@ body{
     height:42px;
     background:var(--dark);
     overflow:hidden;
-    position:relative;
     display:flex;
     align-items:center;
-}
-
-.ticker-static{
-    position:absolute;
-    width:100%;
-    text-align:center;
-    font-family:"Bebas Neue";
-    font-size:1.1rem;
-    opacity:1;
-    transition:opacity .6s ease;
+    position:relative;
 }
 
 .ticker-track{
-    position:absolute;
     display:flex;
-    white-space:nowrap;
     gap:80px;
-    opacity:0;
-    transform:translateX(100%);
+    white-space:nowrap;
+    font-family:"Bebas Neue";
+
+    /* Starts centered */
+    justify-content:center;
+    width:100%;
+
+    animation:none;
 }
 
 .ticker-track span{
     flex:none;
-    font-family:"Bebas Neue";
     font-size:1.1rem;
 }
 
-.ticker-track.animate{
-    opacity:1;
-    animation:ticker 22s linear infinite;
+.ticker-track.play{
+    width:max-content;
+    justify-content:flex-start;
+    animation:ticker 28s linear infinite;
 }
 
 @keyframes ticker{
@@ -454,10 +448,6 @@ section{
 
 <!-- TICKER -->
 <div class="ticker">
-    <div class="ticker-static" id="tickerStatic">
-        Basketball • Baseball • Leadership • Team Support • Reliability
-    </div>
-
     <div class="ticker-track" id="tickerTrack">
         <span>Basketball • Baseball • Leadership • Team Support • Reliability</span>
         <span>Basketball • Baseball • Leadership • Team Support • Reliability</span>
@@ -670,18 +660,18 @@ setTimeout(() => {
 const staticTicker = document.getElementById("tickerStatic");
 const movingTicker = document.getElementById("tickerTrack");
 
-setTimeout(() => {
-
-    staticTicker.style.opacity = "0";
-
+if (staticTicker && movingTicker) {
     setTimeout(() => {
+        staticTicker.style.opacity = "0";
 
-        staticTicker.style.display = "none";
-        movingTicker.classList.add("animate");
+        setTimeout(() => {
+            staticTicker.remove(); // Removes it from the page
+            movingTicker.classList.add("animate");
+        }, 600);
 
-    },600);
-
-},2500);   
+    }, 2500);
+}
+    
 </script>
 
 <div id="archiveNotice">
