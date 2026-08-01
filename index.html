@@ -418,6 +418,40 @@ section{
     .header-title{font-size:1.5rem;}
 }
 
+/* DESKTOP */
+@media(min-width:1025px){
+    /* bigger, easier-to-read ticker text on wide screens */
+    .ticker-track{
+        font-size:1.5rem;
+        gap:100px;
+    }
+
+    /* sections were using 90px top/bottom + 10% side padding on every
+       breakpoint, which gets huge on wide viewports — tighten it up */
+    section{
+        padding:50px 6%;
+    }
+
+    .intro{
+        height:55vh;
+    }
+
+    .title{
+        margin-bottom:28px;
+    }
+
+    /* all 4 sideline-ops cards on a single row instead of 3-then-1 */
+    .ops{
+        grid-template-columns:repeat(4,1fr);
+    }
+
+    /* keep the photo a comfortable, human-scale size instead of
+       stretching to the full card width */
+    .about-img{
+        max-width:340px;
+    }
+}
+
 #archiveNotice{
     position:fixed;
     top:90px;
@@ -458,8 +492,8 @@ section{
 <div class="ticker">
     <div class="ticker-window">
         <div class="ticker-track" id="tickerTrack">
-            <span>Basketball • Baseball • Leadership • Team Support • Reliability</span>
-            <span>Basketball • Baseball • Leadership • Team Support • Reliability</span>
+            <span>Basketball • Baseball • Leadership • Team Support • Reliability •</span>
+            <span>Basketball • Baseball • Leadership • Team Support • Reliability •</span>
         </div>
     </div>
 </div>
