@@ -74,20 +74,31 @@ body{
 .ticker{
     margin-top:55px;
     height:42px;
-    overflow:hidden;
     background:var(--dark);
+    overflow:hidden;
+    position:relative;
     display:flex;
     align-items:center;
-    position:relative;
+}
+
+.ticker-static{
+    position:absolute;
+    width:100%;
+    text-align:center;
+    font-family:"Bebas Neue";
+    font-size:1.1rem;
+    opacity:1;
+    transition:opacity .6s ease;
 }
 
 .ticker-track{
     position:absolute;
     display:flex;
-    gap:80px;
     white-space:nowrap;
+    gap:80px;
+    opacity:0;
+    transform:translateX(100%);
 }
-
 
 .ticker-track span{
     flex:none;
@@ -95,12 +106,17 @@ body{
     font-size:1.1rem;
 }
 
-@keyframes tickerScroll{
+.ticker-track.animate{
+    opacity:1;
+    animation:ticker 22s linear infinite;
+}
+
+@keyframes ticker{
     from{
-        transform:translateX(0);
+        transform:translateX(100%);
     }
     to{
-        transform:translateX(-50%);
+        transform:translateX(calc(-50% - 40px));
     }
 }
     
@@ -438,7 +454,11 @@ section{
 
 <!-- TICKER -->
 <div class="ticker">
-    <div class="ticker-track">
+    <div class="ticker-static" id="tickerStatic">
+        Basketball • Baseball • Leadership • Team Support • Reliability
+    </div>
+
+    <div class="ticker-track" id="tickerTrack">
         <span>Basketball • Baseball • Leadership • Team Support • Reliability</span>
         <span>Basketball • Baseball • Leadership • Team Support • Reliability</span>
     </div>
@@ -647,44 +667,21 @@ setTimeout(() => {
 }, 250);
 });
 
-const track = document.querySelector(".ticker-track");
-const first = track.children[0];
+const staticTicker = document.getElementById("tickerStatic");
+const movingTicker = document.getElementById("tickerTrack");
 
-let x;
-let speed = 1; // pixels/frame
+setTimeout(() => {
 
-function startTicker(){
+    staticTicker.style.opacity = "0";
 
-    // Perfectly center the FIRST message
-    x = (window.innerWidth - first.getBoundingClientRect().width)/2;
+    setTimeout(() => {
 
-    track.style.transform = `translateX(${x}px)`;
+        staticTicker.style.display = "none";
+        movingTicker.classList.add("animate");
 
-    // Wait so people can read it
-    setTimeout(animate, 2500);
-}
+    },600);
 
-function animate(){
-
-    x -= speed;
-
-    track.style.transform = `translateX(${x}px)`;
-
-    // Once the first message has fully exited...
-    if(x <= -(first.offsetWidth + 80)){
-        x += first.offsetWidth + 80;
-    }
-
-    requestAnimationFrame(animate);
-}
-
-window.addEventListener("load", startTicker);
-
-window.addEventListener("resize", () => {
-    cancelAnimationFrame(animate);
-    startTicker();
-});
-    
+},2500);   
 </script>
 
 <div id="archiveNotice">
