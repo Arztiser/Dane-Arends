@@ -72,24 +72,22 @@ body{
 
 /* ===== TICKER ===== */
 .ticker{
-    margin-top:55px;
-    background:var(--dark);
     overflow:hidden;
-    white-space:nowrap;
+    background:var(--dark);
+    padding:10px 0;
 }
 
 .ticker-track{
     display:flex;
     width:max-content;
-    animation:tickerScroll 18s linear infinite;
+    gap:80px;
     will-change:transform;
 }
 
 .ticker-track span{
-    padding-right:60px; /* spacing between repeats */
-    padding:10px 60px 10px 0;
+    flex:none;
     font-family:"Bebas Neue";
-    flex-shrink:0;
+    font-size:1.1rem;
 }
 
 @keyframes tickerScroll{
@@ -645,24 +643,43 @@ setTimeout(() => {
 });
 
 const track = document.querySelector(".ticker-track");
-const first = document.querySelector(".ticker-item");
+const first = track.children[0];
 
-function startTicker() {
-    const startX = (window.innerWidth / 2) - (first.offsetWidth / 2);
+let x;
+let speed = 1; // pixels/frame
 
-    track.style.animation = "none";
-    track.style.transform = `translateX(${startX}px)`;
+function startTicker(){
 
-    // Force the browser to apply the transform
-    track.offsetHeight;
+    // Perfectly center the FIRST message
+    x = (window.innerWidth - first.getBoundingClientRect().width)/2;
 
-    setTimeout(() => {
-        track.style.animation = "tickerScroll 18s linear infinite";
-    }, 2000);
+    track.style.transform = `translateX(${x}px)`;
+
+    // Wait so people can read it
+    setTimeout(animate, 2500);
+}
+
+function animate(){
+
+    x -= speed;
+
+    track.style.transform = `translateX(${x}px)`;
+
+    // Once the first message has fully exited...
+    if(x <= -(first.offsetWidth + 80)){
+        x += first.offsetWidth + 80;
+    }
+
+    requestAnimationFrame(animate);
 }
 
 window.addEventListener("load", startTicker);
-window.addEventListener("resize", startTicker);   
+
+window.addEventListener("resize", () => {
+    cancelAnimationFrame(animate);
+    startTicker();
+});
+    
 </script>
 
 <div id="archiveNotice">
