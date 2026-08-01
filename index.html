@@ -497,7 +497,6 @@ section{
     <div class="ticker-window">
         <div class="ticker-track" id="tickerTrack">
             <span>Basketball • Baseball • Leadership • Team Support • Reliability</span>
-            <span>Basketball • Baseball • Leadership • Team Support • Reliability</span>
         </div>
     </div>
 </div>
@@ -718,11 +717,44 @@ function positionTickerBelowHeader(){
     ticker.style.marginTop = header.getBoundingClientRect().height + "px";
 }
 
+function ensureEnoughTickerCopies(track, win){
+    // the "shift by exactly one copy" loop trick only looks seamless if
+    // there are enough repeated copies to fully tile the visible window at
+    // all times. On a wide desktop window, 2 copies isn't nearly enough —
+    // that's what was causing the scroll to run out of content and jump.
+    const items = track.querySelectorAll("span");
+    if(items.length === 0) return;
+
+    const singleWidth = items[0].getBoundingClientRect().width;
+    const gapPx = parseFloat(getComputedStyle(track).columnGap) || parseFloat(getComputedStyle(track).gap) || 0;
+    const cycle = singleWidth + gapPx;
+    if(cycle <= 0) return;
+
+    const winWidth = win.getBoundingClientRect().width;
+    // enough copies to cover the window twice over, so there's always a
+    // full extra copy waiting off-screen to scroll in
+    const needed = Math.ceil((winWidth * 2) / cycle) + 1;
+
+    let current = items.length;
+    while(current < needed){
+        track.appendChild(items[0].cloneNode(true));
+        current++;
+    }
+    while(current > needed && current > 2){
+        track.removeChild(track.lastElementChild);
+        current--;
+    }
+}
+
 function measureAndSetTicker(){
     const track = document.getElementById("tickerTrack");
     const win = track.parentElement; // .ticker-window
+    if(!track || !win) return;
+
+    ensureEnoughTickerCopies(track, win);
+
     const items = track.querySelectorAll("span");
-    if(!track || !win || items.length < 2) return;
+    if(items.length < 2) return;
 
     const first = items[0];
     const second = items[1];
@@ -736,7 +768,7 @@ function measureAndSetTicker(){
 
     // exact pixel distance from the start of copy #1 to the start of copy #2
     // (this is text width + the flex gap) — shifting by exactly this amount
-    // makes copy #2 land precisely where copy #1 started, i.e. a seamless loop
+    // makes the next identical copy land precisely where the first started
     const cycleDist = secondRect.left - firstRect.left;
 
     const startX = Math.round((winWidth - textWidth) / 2);
