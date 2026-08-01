@@ -436,8 +436,8 @@ section{
 <!-- TICKER -->
 <div class="ticker">
     <div class="ticker-track">
-        <span>Basketball • Baseball • Leadership • Team Support • Reliability</span>
-        <span>Basketball • Baseball • Leadership • Team Support • Reliability</span>
+        <span class="ticker-item">Basketball • Baseball • Leadership • Team Support • Reliability</span>
+        <span class="ticker-item">Basketball • Baseball • Leadership • Team Support • Reliability</span>
     </div>
 </div>
 
@@ -644,17 +644,17 @@ setTimeout(() => {
 }, 250);
 });
 
-    const track = document.querySelector(".ticker-track");
-const firstSpan = track.querySelector("span");
+const track = document.querySelector(".ticker-track");
+const first = document.querySelector(".ticker-item");
 
 function startTicker() {
-    const screenWidth = window.innerWidth;
-    const textWidth = firstSpan.offsetWidth;
-
-    const startX = (screenWidth - textWidth) / 2;
+    const startX = (window.innerWidth / 2) - (first.offsetWidth / 2);
 
     track.style.animation = "none";
     track.style.transform = `translateX(${startX}px)`;
+
+    // Force the browser to apply the transform
+    track.offsetHeight;
 
     setTimeout(() => {
         track.style.animation = "tickerScroll 18s linear infinite";
@@ -662,7 +662,7 @@ function startTicker() {
 }
 
 window.addEventListener("load", startTicker);
-window.addEventListener("resize", startTicker);    
+window.addEventListener("resize", startTicker);   
 </script>
 
 <div id="archiveNotice">
