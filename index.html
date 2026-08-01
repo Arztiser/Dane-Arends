@@ -652,6 +652,26 @@ setTimeout(() => {
     aboutPhoto.style.opacity = "1";
 }, 250);
 });
+
+    const track = document.querySelector(".ticker-track");
+
+function startTicker() {
+    const screenWidth = window.innerWidth;
+    const textWidth = track.scrollWidth;
+
+    // Center the entire ticker text
+    const startX = (screenWidth - textWidth) / 2;
+
+    track.style.animation = "none";
+    track.style.transform = `translateX(${startX}px)`;
+
+    setTimeout(() => {
+        track.style.animation = "tickerScroll 18s linear infinite";
+    }, 2000);
+}
+
+window.addEventListener("load", startTicker);
+window.addEventListener("resize", startTicker);
 </script>
 
 <div id="archiveNotice">
