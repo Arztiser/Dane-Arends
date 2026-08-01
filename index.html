@@ -77,37 +77,41 @@ body{
     height:42px;
     background:var(--dark);
     overflow:hidden;
-    position:relative;
     display:flex;
     align-items:center;
+    justify-content:center;
+}
+
+.ticker-window{
+    width:100%;
+    overflow:hidden;
+    display:flex;
+    justify-content:center;
 }
 
 .ticker-track{
-    position:absolute;
     display:flex;
     gap:80px;
     white-space:nowrap;
     font-family:"Bebas Neue";
     font-size:1.1rem;
-    will-change:transform;
 }
 
 .ticker-track span{
-    flex:none;
+    flex-shrink:0;
 }
 
-/* Animation starts only after JS adds this class */
 .ticker-track.animate{
-    animation:tickerMove 30s linear infinite;
+    animation:tickerMove 24s linear infinite;
 }
 
 @keyframes tickerMove{
     from{
-        transform:translateX(var(--start));
+        transform:translateX(0);
     }
 
     to{
-        transform:translateX(calc(var(--start) - 50% - 40px));
+        transform:translateX(-50%);
     }
 }
     
@@ -445,9 +449,11 @@ section{
 
 <!-- TICKER -->
 <div class="ticker">
-    <div class="ticker-track" id="tickerTrack">
-        <span>Basketball • Baseball • Leadership • Team Support • Reliability •</span>
-        <span>Basketball • Baseball • Leadership • Team Support • Reliability •</span>
+    <div class="ticker-window">
+        <div class="ticker-track" id="tickerTrack">
+            <span>Basketball • Baseball • Leadership • Team Support • Reliability •</span>
+            <span>Basketball • Baseball • Leadership • Team Support • Reliability •</span>
+        </div>
     </div>
 </div>
 
@@ -658,24 +664,10 @@ const ticker = document.getElementById("tickerTrack");
 
 window.addEventListener("load", () => {
 
-    // Wait until fonts are rendered
-    requestAnimationFrame(() => {
-
-        const tickerWidth = ticker.scrollWidth / 2;
-        const screenWidth = window.innerWidth;
-
-        // Center ONE copy of the ticker
-        const start = (screenWidth - tickerWidth) / 2;
-
-        ticker.style.setProperty("--start", start + "px");
-        ticker.style.transform = `translateX(${start}px)`;
-
-        // Pause for 2.5 seconds
-        setTimeout(() => {
-            ticker.classList.add("animate");
-        },2500);
-
-    });
+    // Leave centered text visible first
+    setTimeout(() => {
+        ticker.classList.add("animate");
+    },2500);
 
 });    
 </script>
