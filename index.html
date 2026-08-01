@@ -79,14 +79,13 @@ body{
     overflow:hidden;
     display:flex;
     align-items:center;
-    justify-content:center;
 }
 
 .ticker-window{
     width:100%;
+    height:100%;
     overflow:hidden;
-    display:flex;
-    justify-content:center;
+    position:relative;
 }
 
 .ticker-track{
@@ -95,6 +94,13 @@ body{
     white-space:nowrap;
     font-family:"Bebas Neue";
     font-size:1.1rem;
+    position:absolute;
+    top:50%;
+    left:0;
+    /* --start / --dist are set by JS after measuring the real text width,
+       so the track is exactly centered before any animation runs. */
+    transform:translate(var(--start,0px), -50%);
+    will-change:transform;
 }
 
 .ticker-track span{
@@ -102,16 +108,17 @@ body{
 }
 
 .ticker-track.animate{
-    animation:tickerMove 24s linear infinite;
+    animation:tickerMove var(--duration,24s) linear infinite;
 }
 
 @keyframes tickerMove{
     from{
-        transform:translateX(0);
+        transform:translate(var(--start,0px), -50%);
     }
-
     to{
-        transform:translateX(-50%);
+        /* shifts left by exactly the width of one copy + gap, so the
+           second (identical) copy lands exactly where the first started */
+        transform:translate(calc(var(--start,0px) - var(--dist,0px)), -50%);
     }
 }
     
@@ -660,16 +667,61 @@ setTimeout(() => {
 }, 250);
 });
 
-const ticker = document.getElementById("tickerTrack");
+/* ===== TICKER: center on load, then seamlessly loop ===== */
 
-window.addEventListener("load", () => {
+function measureAndSetTicker(){
+    const track = document.getElementById("tickerTrack");
+    const win = track.parentElement; // .ticker-window
+    const items = track.querySelectorAll("span");
+    if(!track || !win || items.length < 2) return;
 
-    // Leave centered text visible first
+    const first = items[0];
+    const second = items[1];
+
+    const firstRect = first.getBoundingClientRect();
+    const secondRect = second.getBoundingClientRect();
+    const winWidth = win.getBoundingClientRect().width;
+
+    // width of just the visible text, for centering
+    const textWidth = firstRect.width;
+
+    // exact pixel distance from the start of copy #1 to the start of copy #2
+    // (this is text width + the flex gap) — shifting by exactly this amount
+    // makes copy #2 land precisely where copy #1 started, i.e. a seamless loop
+    const cycleDist = secondRect.left - firstRect.left;
+
+    const startX = Math.round((winWidth - textWidth) / 2);
+
+    track.style.setProperty("--start", startX + "px");
+    track.style.setProperty("--dist", cycleDist + "px");
+
+    // keep scroll speed visually consistent regardless of text length
+    const pxPerSecond = 80;
+    const duration = Math.max(cycleDist / pxPerSecond, 6);
+    track.style.setProperty("--duration", duration.toFixed(2) + "s");
+}
+
+function initTicker(){
+    measureAndSetTicker();
+
+    const track = document.getElementById("tickerTrack");
+
+    // hold centered for a beat, then hand off into the looping animation.
+    // because .animate's "from" keyframe uses the same --start value,
+    // there's no jump when the animation kicks in.
     setTimeout(() => {
-        ticker.classList.add("animate");
-    },2500);
+        track.classList.add("animate");
+    }, 2500);
+}
 
-});    
+// re-measure once web fonts are actually loaded, so widths are accurate
+if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(measureAndSetTicker);
+}
+
+window.addEventListener("DOMContentLoaded", initTicker);
+window.addEventListener("resize", measureAndSetTicker);
+
 </script>
 
 <div id="archiveNotice">
