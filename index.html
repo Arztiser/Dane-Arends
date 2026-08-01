@@ -645,12 +645,12 @@ setTimeout(() => {
 });
 
     const track = document.querySelector(".ticker-track");
+const firstSpan = track.querySelector("span");
 
 function startTicker() {
     const screenWidth = window.innerWidth;
-    const textWidth = track.scrollWidth;
+    const textWidth = firstSpan.offsetWidth;
 
-    // Center the entire ticker text
     const startX = (screenWidth - textWidth) / 2;
 
     track.style.animation = "none";
@@ -662,7 +662,7 @@ function startTicker() {
 }
 
 window.addEventListener("load", startTicker);
-window.addEventListener("resize", startTicker);
+window.addEventListener("resize", startTicker);    
 </script>
 
 <div id="archiveNotice">
