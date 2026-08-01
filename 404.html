@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 | Dane Arends</title>
+<meta name="description" content="Page not found.">
+<meta name="robots" content="noindex">
+
+<link href="https://fonts.googleapis.com/css2?family=Changa+One:ital@1&family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+:root{
+    --red:#E6192B;
+    --black:#0b0b0b;
+    --dark:#141414;
+    --white:#fff;
+    --text:#cfcfcf;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{
+    background:var(--black);
+    color:var(--white);
+    font-family:Inter,sans-serif;
+    overflow-x:hidden;
+    display:flex;
+    flex-direction:column;
+}
+
+/* ===== HEADER (matches site header) ===== */
+.header{
+    position:fixed;
+    top:0;
+    width:100%;
+    z-index:1000;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 18px;
+    background:#0d0d0df2;
+    border-bottom:2px solid var(--red);
+}
+
+.header-title{
+    font-family:"Bebas Neue";
+    font-size:2rem;
+    letter-spacing:4px;
+}
+
+.clock{
+    font-family:"Bebas Neue";
+    color:var(--red);
+    font-size:1.2rem;
+}
+
+.status-pill{
+    font-family:"Bebas Neue";
+    color:var(--red);
+    letter-spacing:2px;
+    font-size:1rem;
+    opacity:0.9;
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+
+.status-pill::before{
+    content:"";
+    width:8px;
+    height:8px;
+    background:var(--red);
+    border-radius:50%;
+    display:inline-block;
+    animation:pulseDot 1.6s infinite;
+}
+
+@keyframes pulseDot{
+    0%{transform:scale(1); opacity:1;}
+    50%{transform:scale(1.6); opacity:0.4;}
+    100%{transform:scale(1); opacity:1;}
+}
+
+/* ===== TICKER (same mechanic as the main site) ===== */
+.ticker{
+    margin-top:55px;
+    height:42px;
+    background:var(--dark);
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+}
+
+.ticker-window{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    position:relative;
+    display:flex;
+    align-items:center;
+}
+
+.ticker-track{
+    display:flex;
+    align-items:center;
+    gap:80px;
+    white-space:nowrap;
+    font-family:"Bebas Neue";
+    font-size:1.1rem;
+    line-height:1;
+    transform:translateX(var(--start,0px));
+    will-change:transform;
+}
+
+.ticker-track span{
+    flex-shrink:0;
+    line-height:1;
+}
+
+.ticker-track.animate{
+    animation:tickerMove var(--duration,24s) linear infinite;
+}
+
+@keyframes tickerMove{
+    from{ transform:translateX(var(--start,0px)); }
+    to{ transform:translateX(calc(var(--start,0px) - var(--dist,0px))); }
+}
+
+@media(min-width:850px){
+    .ticker-track{
+        font-size:1.5rem;
+        gap:100px;
+    }
+}
+
+/* ===== MAIN ===== */
+main{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    position:relative;
+    background:radial-gradient(circle,#1a1a1a,#000);
+    overflow:hidden;
+    padding:110px 8% 60px;
+}
+
+main::before{
+    content:"";
+    position:absolute;
+    width:200%;
+    height:200%;
+    background:radial-gradient(circle,rgba(230,25,43,0.12),transparent 60%);
+    animation:spot 6s infinite linear;
+}
+
+@keyframes spot{
+    0%{transform:translate(-20%,-20%) scale(1);}
+    50%{transform:translate(20%,20%) scale(1.2);}
+    100%{transform:translate(-20%,-20%) scale(1);}
+}
+
+.error-content{
+    position:relative;
+    z-index:2;
+    max-width:640px;
+    animation:zoom 1s ease;
+}
+
+@keyframes zoom{
+    from{transform:scale(0.6);opacity:0;}
+    to{transform:scale(1);opacity:1;}
+}
+
+.eyebrow{
+    font-family:"Bebas Neue";
+    color:var(--red);
+    letter-spacing:6px;
+    font-size:1rem;
+    margin-bottom:14px;
+}
+
+.error-content h1{
+    font-family:"Changa One";
+    font-size:4.4rem;
+    line-height:1.05;
+}
+
+.error-content h2{
+    font-family:"Bebas Neue";
+    letter-spacing:1px;
+    color:var(--text);
+    font-size:1.5rem;
+    margin-top:14px;
+}
+
+.error-content p{
+    color:#999;
+    margin-top:18px;
+    line-height:1.6;
+    max-width:480px;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+/* ===== SIGNATURE: BROKEN PLAY DIAGRAM ===== */
+.playbook{
+    width:100%;
+    max-width:360px;
+    margin:34px auto 0;
+}
+
+.playbook svg{
+    width:100%;
+    height:auto;
+    overflow:visible;
+}
+
+.field-line{
+    stroke:#2a2a2a;
+    stroke-width:2;
+}
+
+.route-clean{
+    fill:none;
+    stroke:var(--red);
+    stroke-width:2.5;
+    stroke-linecap:round;
+    stroke-dasharray:7 7;
+    stroke-dashoffset:200;
+    animation:drawRoute 1.4s ease forwards 0.6s;
+}
+
+@keyframes drawRoute{
+    to{ stroke-dashoffset:0; }
+}
+
+.route-broken{
+    fill:none;
+    stroke:var(--red);
+    stroke-width:2.5;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    opacity:0;
+    animation:glitchIn 0.4s steps(2) forwards 2s, jitter 2.4s infinite 2.4s;
+}
+
+@keyframes glitchIn{
+    to{ opacity:1; }
+}
+
+@keyframes jitter{
+    0%,100%{ transform:translate(0,0); }
+    92%{ transform:translate(0,0); }
+    94%{ transform:translate(-1.5px,0.5px); }
+    96%{ transform:translate(1.5px,-0.5px); }
+    98%{ transform:translate(-1px,0); }
+}
+
+.player{
+    fill:var(--dark);
+    stroke:#666;
+    stroke-width:1.5;
+}
+
+.player-label{
+    font-family:"Bebas Neue";
+    font-size:9px;
+    fill:#888;
+    text-anchor:middle;
+}
+
+.dead-marker{
+    font-family:"Bebas Neue";
+    font-size:11px;
+    fill:var(--red);
+    text-anchor:middle;
+    opacity:0;
+    animation:glitchIn 0.4s steps(2) forwards 2.3s;
+}
+
+/* ===== CTA ===== */
+.actions{
+    display:flex;
+    gap:14px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-top:32px;
+}
+
+.btn{
+    padding:14px 22px;
+    border-radius:10px;
+    text-decoration:none;
+    color:white;
+    font-family:"Bebas Neue";
+    letter-spacing:1px;
+    font-size:1rem;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    border:1px solid #222;
+    background:var(--dark);
+    transition:0.3s;
+}
+
+.btn.primary{
+    background:var(--red);
+    border-color:var(--red);
+}
+
+.btn:hover{
+    transform:translateY(-4px);
+    box-shadow:0 0 25px rgba(230,25,43,0.25);
+}
+
+footer{
+    text-align:center;
+    padding:26px;
+    color:#555;
+    font-size:0.85rem;
+}
+
+.redirect-note{
+    margin-top:18px;
+    color:#666;
+    font-size:0.85rem;
+    letter-spacing:0.5px;
+}
+
+.redirect-note span{
+    color:var(--red);
+    font-weight:600;
+}
+
+@media(max-width:600px){
+    .error-content h1{ font-size:2.8rem; }
+    .header-title{ font-size:1.5rem; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <div class="header-title">DANE ARENDS</div>
+    <div style="display:flex; gap:14px; align-items:center;">
+        <div class="clock" id="clock">--:--</div>
+        <span class="status-pill">TIMEOUT</span>
+    </div>
+</div>
+
+<div class="ticker">
+    <div class="ticker-window">
+        <div class="ticker-track" id="tickerTrack">
+            <span>Page Not Found • Route Uncovered • Check The URL And Run It Back</span>
+            <span>Page Not Found • Route Uncovered • Check The URL And Run It Back</span>
+        </div>
+    </div>
+</div>
+
+<main>
+    <div class="error-content">
+        <div class="eyebrow">ERROR 404</div>
+        <h1>TIMEOUT.</h1>
+        <h2>THIS PLAY WASN'T DRAWN UP.</h2>
+        <p>The page you're looking for isn't on the board. Somewhere between the whiteboard and the field, this route got lost.</p>
+
+        <div class="playbook">
+            <svg viewBox="0 0 360 240" xmlns="http://www.w3.org/2000/svg">
+                <!-- baseline -->
+                <line class="field-line" x1="40" y1="18" x2="320" y2="18"/>
+
+                <!-- backboard + rim -->
+                <line class="field-line" x1="165" y1="8" x2="195" y2="8"/>
+                <circle class="field-line" cx="180" cy="18" r="7" fill="none"/>
+
+                <!-- the paint -->
+                <rect class="field-line" x="140" y="18" width="80" height="95" fill="none"/>
+
+                <!-- free-throw circle -->
+                <circle class="field-line" cx="180" cy="113" r="38" fill="none"/>
+
+                <!-- three-point arc -->
+                <path class="field-line" d="M40,232 A230,230 0 0 1 320,232" fill="none"/>
+
+                <!-- clean cut that just... stops -->
+                <path class="route-clean" d="M118,152 Q150,92 176,54"/>
+
+                <!-- broken / glitched continuation toward the rim -->
+                <path class="route-broken" d="M176,54 L192,44 L166,34 L196,25 L178,30"/>
+
+                <!-- players -->
+                <circle class="player" cx="70" cy="196" r="9"/>
+                <text class="player-label" x="70" y="199">O</text>
+
+                <circle class="player" cx="290" cy="196" r="9"/>
+                <text class="player-label" x="290" y="199">O</text>
+
+                <circle class="player" cx="180" cy="222" r="9"/>
+                <text class="player-label" x="180" y="225">X</text>
+
+                <circle class="player" cx="118" cy="152" r="9"/>
+                <text class="player-label" x="118" y="155">X</text>
+
+                <text class="dead-marker" x="235" y="48">CUT&#8201;NOT&#8201;FOUND</text>
+            </svg>
+        </div>
+
+        <div class="actions">
+            <a class="btn primary" href="/"><i class="fa-solid fa-house"></i> Back To The Sideline</a>
+            <a class="btn" href="mailto:danearends10@gmail.com"><i class="fa-solid fa-envelope"></i> Report It</a>
+        </div>
+
+        <p class="redirect-note">Rerouting to the sideline in <span id="redirectCount">5</span>s&hellip;</p>
+    </div>
+</main>
+
+<footer>© <script>document.write(new Date().getFullYear())</script> Dane Arends • Sports Manager</footer>
+
+<script>
+function updateClock(){
+    const now = new Date();
+    let h = now.getHours();
+    const m = String(now.getMinutes()).padStart(2,'0');
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12;
+    h = h ? h : 12;
+    document.getElementById("clock").innerText = `${h}:${m} ${ampm}`;
+}
+setInterval(updateClock,1000);
+updateClock();
+
+function measureAndSetTicker(){
+    const track = document.getElementById("tickerTrack");
+    const win = track.parentElement;
+    const items = track.querySelectorAll("span");
+    if(!track || !win || items.length < 2) return;
+
+    const first = items[0];
+    const second = items[1];
+    const firstRect = first.getBoundingClientRect();
+    const secondRect = second.getBoundingClientRect();
+    const winWidth = win.getBoundingClientRect().width;
+
+    const textWidth = firstRect.width;
+    const cycleDist = secondRect.left - firstRect.left;
+    const startX = Math.round((winWidth - textWidth) / 2);
+
+    track.style.setProperty("--start", startX + "px");
+    track.style.setProperty("--dist", cycleDist + "px");
+
+    const pxPerSecond = 80;
+    const duration = Math.max(cycleDist / pxPerSecond, 6);
+    track.style.setProperty("--duration", duration.toFixed(2) + "s");
+}
+
+function initTicker(){
+    measureAndSetTicker();
+    const track = document.getElementById("tickerTrack");
+    setTimeout(() => { track.classList.add("animate"); }, 2500);
+}
+
+if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(measureAndSetTicker);
+}
+window.addEventListener("DOMContentLoaded", initTicker);
+window.addEventListener("resize", measureAndSetTicker);
+
+/* redirect back to the homepage after 5 seconds */
+let secondsLeft = 5;
+const redirectCount = document.getElementById("redirectCount");
+const redirectTimer = setInterval(() => {
+    secondsLeft--;
+    if(redirectCount) redirectCount.textContent = secondsLeft;
+    if(secondsLeft <= 0){
+        clearInterval(redirectTimer);
+        window.location.href = "/";
+    }
+}, 1000);
+</script>
+
+</body>
+</html>
