@@ -93,37 +93,17 @@ body{
 .ticker-track{
     display:flex;
     align-items:center;
-    gap:80px;
     white-space:nowrap;
     font-family:"Bebas Neue";
     font-size:1.1rem;
     line-height:1;
-    /* --start / --dist are set by JS after measuring the real text width,
-       so the track is exactly centered before any animation runs.
-       Staying in normal flex flow (no position:absolute) guarantees
-       align-items:center on .ticker-window vertically centers it. */
-    transform:translateX(var(--start,0px));
+    opacity:0;
     will-change:transform;
 }
 
 .ticker-track span{
     flex-shrink:0;
     line-height:1;
-}
-
-.ticker-track.animate{
-    animation:tickerMove var(--duration,24s) linear infinite;
-}
-
-@keyframes tickerMove{
-    from{
-        transform:translateX(var(--start,0px));
-    }
-    to{
-        /* shifts left by exactly the width of one copy + gap, so the
-           second (identical) copy lands exactly where the first started */
-        transform:translateX(calc(var(--start,0px) - var(--dist,0px)));
-    }
 }
     
 /* ===== INTRO ===== */
@@ -427,7 +407,6 @@ section{
     /* bigger, easier-to-read ticker text on wide screens */
     .ticker-track{
         font-size:1.3rem;
-        gap:90px;
     }
 
     /* sections were using 90px top/bottom + 10% side padding on every
@@ -496,7 +475,7 @@ section{
 <div class="ticker">
     <div class="ticker-window">
         <div class="ticker-track" id="tickerTrack">
-            <span>Basketball • Baseball • Leadership • Team Support • Reliability</span>
+            <span id="tickerText">Basketball • Baseball • Leadership • Team Support • Reliability</span>
         </div>
     </div>
 </div>
@@ -704,9 +683,7 @@ setTimeout(() => {
 }, 250);
 });
 
-/* ===== TICKER: center on load, then seamlessly loop ===== */
-
-let tickerAnimating = false;
+/* ===== TICKER: one instance on screen, driven directly by JS ===== */
 
 function positionTickerBelowHeader(){
     const header = document.querySelector(".header");
@@ -717,117 +694,80 @@ function positionTickerBelowHeader(){
     ticker.style.marginTop = header.getBoundingClientRect().height + "px";
 }
 
-function ensureEnoughTickerCopies(track, win){
-    // the "shift by exactly one copy" loop trick only looks seamless if
-    // there are enough repeated copies to fully tile the visible window at
-    // all times. On a wide desktop window, 2 copies isn't nearly enough —
-    // that's what was causing the scroll to run out of content and jump.
-    //
-    // Copies are only ever ADDED here, never removed. Trimming them back
-    // down on a later remeasure risked deleting a copy that was still
-    // needed for the current frame, which is what could make the text
-    // vanish before finishing its scroll. A handful of extra off-screen
-    // copies costs nothing visually, so it's not worth the risk.
-    const items = track.querySelectorAll("span");
-    if(items.length === 0) return;
-
-    const singleWidth = items[0].getBoundingClientRect().width;
-    const gapPx = parseFloat(getComputedStyle(track).columnGap) || parseFloat(getComputedStyle(track).gap) || 0;
-    const cycle = singleWidth + gapPx;
-    if(cycle <= 0) return;
-
-    const winWidth = win.getBoundingClientRect().width;
-    // generously enough copies to cover 3x the window, so there's always
-    // plenty of content waiting off-screen to scroll in
-    const needed = Math.ceil((winWidth * 3) / cycle) + 2;
-
-    let current = items.length;
-    while(current < needed){
-        track.appendChild(items[0].cloneNode(true));
-        current++;
-    }
-}
-
-function measureAndSetTicker(){
+(function setupTicker(){
     const track = document.getElementById("tickerTrack");
+    const text = document.getElementById("tickerText");
+    if(!track || !text) return;
     const win = track.parentElement; // .ticker-window
-    if(!track || !win) return;
 
-    ensureEnoughTickerCopies(track, win);
+    let rafId = null;
 
-    const items = track.querySelectorAll("span");
-    if(items.length < 2) return;
-
-    const first = items[0];
-    const second = items[1];
-
-    const firstRect = first.getBoundingClientRect();
-    const secondRect = second.getBoundingClientRect();
-    const winWidth = win.getBoundingClientRect().width;
-
-    // width of just the visible text, for centering
-    const textWidth = firstRect.width;
-
-    // exact pixel distance from the start of copy #1 to the start of copy #2
-    // (this is text width + the flex gap) — shifting by exactly this amount
-    // makes the next identical copy land precisely where the first started
-    const cycleDist = secondRect.left - firstRect.left;
-
-    const startX = Math.round((winWidth - textWidth) / 2);
-
-    track.style.setProperty("--start", startX + "px");
-    track.style.setProperty("--dist", cycleDist + "px");
-
-    // keep scroll speed visually consistent regardless of text length
-    const pxPerSecond = 80;
-    const duration = Math.max(cycleDist / pxPerSecond, 6);
-    track.style.setProperty("--duration", duration.toFixed(2) + "s");
-
-    // if the loop is already running and something (a resize, a late-loading
-    // font) changes these numbers, DON'T let the animation re-target itself
-    // mid-flight — that's what causes a visible jump partway through the
-    // scroll. Cleanly restart the animation from the new centered position
-    // instead.
-    if(tickerAnimating){
-        track.classList.remove("animate");
-        void track.offsetWidth; // force reflow so the removal actually takes effect
-        track.classList.add("animate");
+    function measure(){
+        const winWidth = win.getBoundingClientRect().width;
+        const textWidth = text.offsetWidth; // layout width, unaffected by the current transform
+        return {
+            center: Math.round((winWidth - textWidth) / 2),
+            offRight: winWidth,
+            offLeft: -textWidth
+        };
     }
-}
 
-function initTicker(){
-    positionTickerBelowHeader();
-    measureAndSetTicker();
+    function setX(x){
+        track.style.transform = `translateX(${x}px)`;
+    }
 
-    const track = document.getElementById("tickerTrack");
+    function animateSegment(fromX, toX, onDone){
+        if(rafId) cancelAnimationFrame(rafId);
+        const distance = fromX - toX; // positive: moving left
+        const pxPerSecond = 90;
+        const durationMs = Math.max((distance / pxPerSecond) * 1000, 1200);
+        const startTime = performance.now();
 
-    // hold centered for a beat, then hand off into the looping animation.
-    // because .animate's "from" keyframe uses the same --start value,
-    // there's no jump when the animation kicks in.
-    setTimeout(() => {
-        tickerAnimating = true;
-        track.classList.add("animate");
-    }, 2500);
-}
+        function frame(now){
+            const t = Math.min((now - startTime) / durationMs, 1);
+            setX(fromX - distance * t);
+            if(t < 1){
+                rafId = requestAnimationFrame(frame);
+            } else {
+                onDone();
+            }
+        }
+        rafId = requestAnimationFrame(frame);
+    }
 
-// re-measure once web fonts are actually loaded, so widths are accurate
-if(document.fonts && document.fonts.ready){
-    document.fonts.ready.then(() => {
+    function loopForever(){
+        // reset off-screen to the right — invisible, since it's outside
+        // the window — then scroll it all the way across and off the left.
+        // Only one copy ever exists, so there's nothing to run out of.
+        const m = measure();
+        setX(m.offRight);
+        animateSegment(m.offRight, m.offLeft, loopForever);
+    }
+
+    function start(){
         positionTickerBelowHeader();
-        measureAndSetTicker();
-    });
-}
+        const m = measure();
+        setX(m.center);
+        track.style.opacity = "1";
 
-window.addEventListener("DOMContentLoaded", initTicker);
+        // hold centered for a beat, then exit left and start the
+        // continuous single-copy loop
+        setTimeout(() => {
+            const fresh = measure();
+            animateSegment(fresh.center, fresh.offLeft, loopForever);
+        }, 2500);
+    }
 
-let tickerResizeTimeout = null;
-window.addEventListener("resize", () => {
-    clearTimeout(tickerResizeTimeout);
-    tickerResizeTimeout = setTimeout(() => {
-        positionTickerBelowHeader();
-        measureAndSetTicker();
-    }, 200);
-});
+    window.addEventListener("DOMContentLoaded", start);
+
+    // re-check header height and (if we haven't started scrolling yet)
+    // re-center on font load / resize. Once scrolling, each new segment
+    // already re-measures itself, so there's no need to force a restart.
+    if(document.fonts && document.fonts.ready){
+        document.fonts.ready.then(positionTickerBelowHeader);
+    }
+    window.addEventListener("resize", positionTickerBelowHeader);
+})();
 
 </script>
 
