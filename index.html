@@ -86,25 +86,30 @@ body{
     height:100%;
     overflow:hidden;
     position:relative;
+    display:flex;
+    align-items:center;
 }
 
 .ticker-track{
     display:flex;
+    align-items:center;
     gap:80px;
     white-space:nowrap;
     font-family:"Bebas Neue";
     font-size:1.1rem;
+    line-height:1;
     position:absolute;
-    top:50%;
     left:0;
     /* --start / --dist are set by JS after measuring the real text width,
-       so the track is exactly centered before any animation runs. */
-    transform:translate(var(--start,0px), -50%);
+       so the track is exactly centered before any animation runs.
+       Vertical centering is handled by align-items on .ticker-window. */
+    transform:translateX(var(--start,0px));
     will-change:transform;
 }
 
 .ticker-track span{
     flex-shrink:0;
+    line-height:1;
 }
 
 .ticker-track.animate{
@@ -113,18 +118,18 @@ body{
 
 @keyframes tickerMove{
     from{
-        transform:translate(var(--start,0px), -50%);
+        transform:translateX(var(--start,0px));
     }
     to{
         /* shifts left by exactly the width of one copy + gap, so the
            second (identical) copy lands exactly where the first started */
-        transform:translate(calc(var(--start,0px) - var(--dist,0px)), -50%);
+        transform:translateX(calc(var(--start,0px) - var(--dist,0px)));
     }
 }
     
 /* ===== INTRO ===== */
 .intro{
-    height:80vh;
+    padding:90px 10%;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -433,7 +438,7 @@ section{
     }
 
     .intro{
-        height:55vh;
+        padding:50px 6%;
     }
 
     .title{
@@ -492,8 +497,8 @@ section{
 <div class="ticker">
     <div class="ticker-window">
         <div class="ticker-track" id="tickerTrack">
-            <span>Basketball • Baseball • Leadership • Team Support • Reliability •</span>
-            <span>Basketball • Baseball • Leadership • Team Support • Reliability •</span>
+            <span>Basketball • Baseball • Leadership • Team Support • Reliability</span>
+            <span>Basketball • Baseball • Leadership • Team Support • Reliability</span>
         </div>
     </div>
 </div>
