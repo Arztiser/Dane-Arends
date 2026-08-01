@@ -72,17 +72,22 @@ body{
 
 /* ===== TICKER ===== */
 .ticker{
+    margin-top:55px;
+    height:42px;
     overflow:hidden;
     background:var(--dark);
-    padding:10px 0;
+    display:flex;
+    align-items:center;
+    position:relative;
 }
 
 .ticker-track{
+    position:absolute;
     display:flex;
-    width:max-content;
     gap:80px;
-    will-change:transform;
+    white-space:nowrap;
 }
+
 
 .ticker-track span{
     flex:none;
