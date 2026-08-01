@@ -88,9 +88,21 @@ body{
     position:relative;
     display:flex;
     align-items:center;
+    -webkit-mask-image:linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+    mask-image:linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
 }
 
 .ticker-track{
+    position:relative;
+    width:100%;
+    height:100%;
+}
+
+.ticker-item{
+    position:absolute;
+    top:0;
+    left:0;
+    height:100%;
     display:flex;
     align-items:center;
     white-space:nowrap;
@@ -99,11 +111,6 @@ body{
     line-height:1;
     opacity:0;
     will-change:transform;
-}
-
-.ticker-track span{
-    flex-shrink:0;
-    line-height:1;
 }
     
 /* ===== INTRO ===== */
@@ -405,7 +412,7 @@ section{
 /* DESKTOP */
 @media(min-width:850px){
     /* bigger, easier-to-read ticker text on wide screens */
-    .ticker-track{
+    .ticker-item{
         font-size:1.3rem;
     }
 
@@ -475,7 +482,8 @@ section{
 <div class="ticker">
     <div class="ticker-window">
         <div class="ticker-track" id="tickerTrack">
-            <span id="tickerText">Basketball • Baseball • Leadership • Team Support • Reliability</span>
+            <span id="tickerText" class="ticker-item">Basketball • Baseball • Leadership • Team Support • Reliability</span>
+            <span id="tickerText2" class="ticker-item">Basketball • Baseball • Leadership • Team Support • Reliability</span>
         </div>
     </div>
 </div>
@@ -683,7 +691,7 @@ setTimeout(() => {
 }, 250);
 });
 
-/* ===== TICKER: one instance on screen, driven directly by JS ===== */
+/* ===== TICKER: crossfade hand-off between two instances ===== */
 
 function positionTickerBelowHeader(){
     const header = document.querySelector(".header");
@@ -696,77 +704,106 @@ function positionTickerBelowHeader(){
 
 (function setupTicker(){
     const track = document.getElementById("tickerTrack");
-    const text = document.getElementById("tickerText");
-    if(!track || !text) return;
+    const els = [document.getElementById("tickerText"), document.getElementById("tickerText2")];
+    if(!track || !els[0] || !els[1]) return;
     const win = track.parentElement; // .ticker-window
 
-    let rafId = null;
+    const pxPerSecond = 90;
+    // how much of the window's edge is the visual fade zone (matches the
+    // mask-image percentages below) — the hand-off triggers when the
+    // leading edge reaches this point, so the next copy starts appearing
+    // right as the current one starts fading out
+    const fadeZoneRatio = 0.10;
+
+    let winWidth = 0;
+    let textWidth = 0;
+    let fadeZonePx = 0;
+
+    // two slots that take turns; only one is ever "waiting" while the
+    // other is on-screen, so mostly one instance is visible, with a brief
+    // overlap during the hand-off
+    const slots = [
+        { el: els[0], x: 0, active: false },
+        { el: els[1], x: 0, active: false }
+    ];
 
     function measure(){
-        const winWidth = win.getBoundingClientRect().width;
-        const textWidth = text.offsetWidth; // layout width, unaffected by the current transform
-        return {
-            center: Math.round((winWidth - textWidth) / 2),
-            offRight: winWidth,
-            offLeft: -textWidth
-        };
+        winWidth = win.getBoundingClientRect().width;
+        textWidth = els[0].offsetWidth; // layout width, unaffected by transform
+        fadeZonePx = winWidth * fadeZoneRatio;
     }
 
-    function setX(x){
-        track.style.transform = `translateX(${x}px)`;
+    function place(slot){
+        slot.el.style.transform = `translateX(${slot.x}px)`;
     }
 
-    function animateSegment(fromX, toX, onDone){
-        if(rafId) cancelAnimationFrame(rafId);
-        const distance = fromX - toX; // positive: moving left
-        const pxPerSecond = 90;
-        const durationMs = Math.max((distance / pxPerSecond) * 1000, 1200);
-        const startTime = performance.now();
+    let lastTime = null;
+    let started = false;
 
-        function frame(now){
-            const t = Math.min((now - startTime) / durationMs, 1);
-            setX(fromX - distance * t);
-            if(t < 1){
-                rafId = requestAnimationFrame(frame);
-            } else {
-                onDone();
+    function tick(now){
+        if(lastTime === null) lastTime = now;
+        const dt = (now - lastTime) / 1000;
+        lastTime = now;
+
+        const active = slots.filter(s => s.active);
+        const waiting = slots.find(s => !s.active);
+
+        active.forEach(slot => {
+            slot.x -= pxPerSecond * dt;
+            place(slot);
+
+            // the moment this instance's leading edge reaches the fade
+            // zone, kick off the other one from off-screen right — this
+            // is what makes the new copy start appearing right as the
+            // current one starts fading, instead of waiting for a full exit
+            if(waiting && !waiting.active && slot.x <= fadeZonePx){
+                waiting.x = winWidth;
+                waiting.active = true;
+                waiting.el.style.opacity = "1";
+                place(waiting);
             }
-        }
-        rafId = requestAnimationFrame(frame);
-    }
 
-    function loopForever(){
-        // reset off-screen to the right — invisible, since it's outside
-        // the window — then scroll it all the way across and off the left.
-        // Only one copy ever exists, so there's nothing to run out of.
-        const m = measure();
-        setX(m.offRight);
-        animateSegment(m.offRight, m.offLeft, loopForever);
+            // fully exited past the left fade zone — retire it so it's
+            // ready to be reused as the next "waiting" slot
+            if(slot.x + textWidth < -fadeZonePx){
+                slot.active = false;
+            }
+        });
+
+        requestAnimationFrame(tick);
     }
 
     function start(){
         positionTickerBelowHeader();
-        const m = measure();
-        setX(m.center);
-        track.style.opacity = "1";
+        measure();
 
-        // hold centered for a beat, then exit left and start the
-        // continuous single-copy loop
+        const centerX = Math.round((winWidth - textWidth) / 2);
+        slots[0].x = centerX;
+        slots[0].active = false; // stays static until the hold ends
+        place(slots[0]);
+        slots[0].el.style.opacity = "1";
+
         setTimeout(() => {
-            const fresh = measure();
-            animateSegment(fresh.center, fresh.offLeft, loopForever);
+            measure();
+            slots[0].active = true;
+            requestAnimationFrame(tick);
         }, 2500);
     }
 
     window.addEventListener("DOMContentLoaded", start);
 
-    // re-check header height and (if we haven't started scrolling yet)
-    // re-center on font load / resize. Once scrolling, each new segment
-    // already re-measures itself, so there's no need to force a restart.
     if(document.fonts && document.fonts.ready){
-        document.fonts.ready.then(positionTickerBelowHeader);
+        document.fonts.ready.then(() => {
+            positionTickerBelowHeader();
+        });
     }
-    window.addEventListener("resize", positionTickerBelowHeader);
+    window.addEventListener("resize", () => {
+        positionTickerBelowHeader();
+        // textWidth/winWidth are re-measured continuously via measure()
+        // being called at natural trigger points, so a resize corrects
+        // itself on the next hand-off rather than needing a hard restart
+        measure();
+    });
 })();
 
 </script>
