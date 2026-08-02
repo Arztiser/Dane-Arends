@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>404 | Dane Arends</title>
+<title>404 — Timeout | Dane Arends</title>
 <meta name="description" content="Page not found.">
 <meta name="robots" content="noindex">
 
@@ -98,40 +98,34 @@ body{
     height:100%;
     overflow:hidden;
     position:relative;
-    display:flex;
-    align-items:center;
+    -webkit-mask-image:linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+    mask-image:linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
 }
 
 .ticker-track{
+    position:relative;
+    width:100%;
+    height:100%;
+}
+
+.ticker-item{
+    position:absolute;
+    top:0;
+    left:0;
+    height:100%;
     display:flex;
     align-items:center;
-    gap:80px;
     white-space:nowrap;
     font-family:"Bebas Neue";
     font-size:1.1rem;
     line-height:1;
-    transform:translateX(var(--start,0px));
+    opacity:0;
     will-change:transform;
 }
 
-.ticker-track span{
-    flex-shrink:0;
-    line-height:1;
-}
-
-.ticker-track.animate{
-    animation:tickerMove var(--duration,24s) linear infinite;
-}
-
-@keyframes tickerMove{
-    from{ transform:translateX(var(--start,0px)); }
-    to{ transform:translateX(calc(var(--start,0px) - var(--dist,0px))); }
-}
-
 @media(min-width:850px){
-    .ticker-track{
-        font-size:1.5rem;
-        gap:100px;
+    .ticker-item{
+        font-size:1.3rem;
     }
 }
 
@@ -363,8 +357,8 @@ footer{
 <div class="ticker">
     <div class="ticker-window">
         <div class="ticker-track" id="tickerTrack">
-            <span>Page Not Found • Route Uncovered • Check The URL And Run It Back</span>
-            <span>Page Not Found • Route Uncovered • Check The URL And Run It Back</span>
+            <span id="tickerText" class="ticker-item">Page Not Found • Route Uncovered • Check The URL And Run It Back</span>
+            <span id="tickerText2" class="ticker-item">Page Not Found • Route Uncovered • Check The URL And Run It Back</span>
         </div>
     </div>
 </div>
@@ -375,7 +369,7 @@ footer{
         <div class="eyebrow">ERROR 404</div>
         <h1>TIMEOUT.</h1>
         <h2>THIS PLAY WASN'T DRAWN UP.</h2>
-        <p>The page you're looking for isn't on the board. Somewhere between the whiteboard and the court, this play got lost.</p>
+        <p>The page you're looking for isn't on the board. Somewhere between the whiteboard and the field, this route got lost.</p>
 
         <div class="playbook">
             <svg viewBox="0 0 360 240" xmlns="http://www.w3.org/2000/svg">
@@ -418,7 +412,7 @@ footer{
             </svg>
         </div>
 
-        <p class="redirect-note">Rerouting to the sideline in <span id="redirectCount">10</span>s&hellip;</p>
+        <p class="redirect-note">Rerouting to the sideline in <span id="redirectCount">15</span>s&hellip;</p>
     </div>
 </main>
 
@@ -437,44 +431,136 @@ function updateClock(){
 setInterval(updateClock,1000);
 updateClock();
 
-function measureAndSetTicker(){
+/* ===== TICKER: crossfade hand-off between two instances ===== */
+
+function positionTickerBelowHeader(){
+    const header = document.querySelector(".header");
+    const ticker = document.querySelector(".ticker");
+    if(!header || !ticker) return;
+    ticker.style.marginTop = header.getBoundingClientRect().height + "px";
+}
+
+(function setupTicker(){
     const track = document.getElementById("tickerTrack");
-    const win = track.parentElement;
-    const items = track.querySelectorAll("span");
-    if(!track || !win || items.length < 2) return;
+    const els = [document.getElementById("tickerText"), document.getElementById("tickerText2")];
+    if(!track || !els[0] || !els[1]) return;
+    const win = track.parentElement; // .ticker-window
 
-    const first = items[0];
-    const second = items[1];
-    const firstRect = first.getBoundingClientRect();
-    const secondRect = second.getBoundingClientRect();
-    const winWidth = win.getBoundingClientRect().width;
+    const pxPerSecond = 90;
 
-    const textWidth = firstRect.width;
-    const cycleDist = secondRect.left - firstRect.left;
-    const startX = Math.round((winWidth - textWidth) / 2);
+    let winWidth = 0;
+    let textWidth = 0;
+    let gapPx = 0;      // guaranteed clear space between the two lines during hand-off
+    let retirePx = 0;   // small buffer before fully retiring an off-screen slot
 
-    track.style.setProperty("--start", startX + "px");
-    track.style.setProperty("--dist", cycleDist + "px");
+    // two slots that take turns; only one is ever "waiting" while the
+    // other is on-screen, so mostly one instance is visible, with a brief
+    // overlap during the hand-off
+    const slots = [
+        { el: els[0], x: 0, active: false },
+        { el: els[1], x: 0, active: false }
+    ];
 
-    const pxPerSecond = 80;
-    const duration = Math.max(cycleDist / pxPerSecond, 6);
-    track.style.setProperty("--duration", duration.toFixed(2) + "s");
-}
+    function measure(){
+        winWidth = win.getBoundingClientRect().width;
+        textWidth = els[0].offsetWidth; // layout width, unaffected by transform
+        // fixed minimum gap so the two lines never crowd each other, even
+        // on narrow screens where the text is nearly as wide as the window
+        gapPx = Math.max(60, winWidth * 0.12);
+        retirePx = winWidth * 0.10;
+    }
 
-function initTicker(){
-    measureAndSetTicker();
-    const track = document.getElementById("tickerTrack");
-    setTimeout(() => { track.classList.add("animate"); }, 2500);
-}
+    function place(slot){
+        slot.el.style.transform = `translateX(${slot.x}px)`;
+    }
 
-if(document.fonts && document.fonts.ready){
-    document.fonts.ready.then(measureAndSetTicker);
-}
-window.addEventListener("DOMContentLoaded", initTicker);
-window.addEventListener("resize", measureAndSetTicker);
+    let lastTime = null;
+    let currentGen = 0; // bumped on every (re)start; stale loops check this and bail
 
-/* redirect back to the homepage after 10 seconds */
-let secondsLeft = 10;
+    function tick(now, gen){
+        if(gen !== currentGen) return; // superseded by a reset — stop this loop
+
+        if(lastTime === null) lastTime = now;
+        const dt = (now - lastTime) / 1000;
+        lastTime = now;
+
+        const active = slots.filter(s => s.active);
+        const waiting = slots.find(s => !s.active);
+
+        active.forEach(slot => {
+            slot.x -= pxPerSecond * dt;
+            place(slot);
+
+            // trigger the next line the moment there's exactly `gapPx` of
+            // clear space between this line's trailing edge and the right
+            // edge — guarantees consistent breathing room on any screen size
+            if(waiting && !waiting.active && (slot.x + textWidth) <= (winWidth - gapPx)){
+                waiting.x = winWidth;
+                waiting.active = true;
+                waiting.el.style.opacity = "1";
+                place(waiting);
+            }
+
+            // fully exited past the left edge — retire it so it's ready to
+            // be reused as the next "waiting" slot
+            if(slot.x + textWidth < -retirePx){
+                slot.active = false;
+            }
+        });
+
+        requestAnimationFrame((n) => tick(n, gen));
+    }
+
+    function start(){
+        currentGen++;
+        const myGen = currentGen;
+
+        positionTickerBelowHeader();
+        measure();
+
+        // reset both slots to a clean initial state — same as a fresh page load
+        slots.forEach(s => { s.active = false; s.el.style.opacity = "0"; });
+
+        const centerX = Math.round((winWidth - textWidth) / 2);
+        slots[0].x = centerX;
+        place(slots[0]);
+        slots[0].el.style.opacity = "1";
+
+        lastTime = null;
+
+        setTimeout(() => {
+            if(myGen !== currentGen) return; // a newer reset already took over
+            measure();
+            slots[0].active = true;
+            requestAnimationFrame((n) => tick(n, myGen));
+        }, 2500);
+    }
+
+    window.addEventListener("DOMContentLoaded", start);
+
+    if(document.fonts && document.fonts.ready){
+        document.fonts.ready.then(() => {
+            positionTickerBelowHeader();
+        });
+    }
+    window.addEventListener("resize", () => {
+        positionTickerBelowHeader();
+        measure();
+    });
+
+    // if the tab was backgrounded (or the screen locked) for a while,
+    // requestAnimationFrame pauses — coming back with a huge elapsed dt
+    // can make the ticker jump wildly or end up stuck blank. Simplest
+    // reliable fix: just restart the whole cycle fresh, like on page load.
+    document.addEventListener("visibilitychange", () => {
+        if(document.visibilityState === "visible"){
+            start();
+        }
+    });
+})();
+
+/* redirect back to the homepage after 15 seconds */
+let secondsLeft = 15;
 const redirectCount = document.getElementById("redirectCount");
 const redirectTimer = setInterval(() => {
     secondsLeft--;
