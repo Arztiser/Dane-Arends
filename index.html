@@ -709,15 +709,11 @@ function positionTickerBelowHeader(){
     const win = track.parentElement; // .ticker-window
 
     const pxPerSecond = 90;
-    // how much of the window's edge is the visual fade zone (matches the
-    // mask-image percentages below) — the hand-off triggers when the
-    // leading edge reaches this point, so the next copy starts appearing
-    // right as the current one starts fading out
-    const fadeZoneRatio = 0.10;
 
     let winWidth = 0;
     let textWidth = 0;
-    let fadeZonePx = 0;
+    let gapPx = 0;      // guaranteed clear space between the two lines during hand-off
+    let retirePx = 0;   // small buffer before fully retiring an off-screen slot
 
     // two slots that take turns; only one is ever "waiting" while the
     // other is on-screen, so mostly one instance is visible, with a brief
@@ -730,7 +726,10 @@ function positionTickerBelowHeader(){
     function measure(){
         winWidth = win.getBoundingClientRect().width;
         textWidth = els[0].offsetWidth; // layout width, unaffected by transform
-        fadeZonePx = winWidth * fadeZoneRatio;
+        // fixed minimum gap so the two lines never crowd each other, even
+        // on narrow screens where the text is nearly as wide as the window
+        gapPx = Math.max(60, winWidth * 0.12);
+        retirePx = winWidth * 0.10;
     }
 
     function place(slot){
@@ -738,9 +737,11 @@ function positionTickerBelowHeader(){
     }
 
     let lastTime = null;
-    let started = false;
+    let currentGen = 0; // bumped on every (re)start; stale loops check this and bail
 
-    function tick(now){
+    function tick(now, gen){
+        if(gen !== currentGen) return; // superseded by a reset — stop this loop
+
         if(lastTime === null) lastTime = now;
         const dt = (now - lastTime) / 1000;
         lastTime = now;
@@ -752,41 +753,48 @@ function positionTickerBelowHeader(){
             slot.x -= pxPerSecond * dt;
             place(slot);
 
-            // the moment this instance's leading edge reaches the fade
-            // zone, kick off the other one from off-screen right — this
-            // is what makes the new copy start appearing right as the
-            // current one starts fading, instead of waiting for a full exit
-            if(waiting && !waiting.active && slot.x <= fadeZonePx){
+            // trigger the next line the moment there's exactly `gapPx` of
+            // clear space between this line's trailing edge and the right
+            // edge — guarantees consistent breathing room on any screen size
+            if(waiting && !waiting.active && (slot.x + textWidth) <= (winWidth - gapPx)){
                 waiting.x = winWidth;
                 waiting.active = true;
                 waiting.el.style.opacity = "1";
                 place(waiting);
             }
 
-            // fully exited past the left fade zone — retire it so it's
-            // ready to be reused as the next "waiting" slot
-            if(slot.x + textWidth < -fadeZonePx){
+            // fully exited past the left edge — retire it so it's ready to
+            // be reused as the next "waiting" slot
+            if(slot.x + textWidth < -retirePx){
                 slot.active = false;
             }
         });
 
-        requestAnimationFrame(tick);
+        requestAnimationFrame((n) => tick(n, gen));
     }
 
     function start(){
+        currentGen++;
+        const myGen = currentGen;
+
         positionTickerBelowHeader();
         measure();
 
+        // reset both slots to a clean initial state — same as a fresh page load
+        slots.forEach(s => { s.active = false; s.el.style.opacity = "0"; });
+
         const centerX = Math.round((winWidth - textWidth) / 2);
         slots[0].x = centerX;
-        slots[0].active = false; // stays static until the hold ends
         place(slots[0]);
         slots[0].el.style.opacity = "1";
 
+        lastTime = null;
+
         setTimeout(() => {
+            if(myGen !== currentGen) return; // a newer reset already took over
             measure();
             slots[0].active = true;
-            requestAnimationFrame(tick);
+            requestAnimationFrame((n) => tick(n, myGen));
         }, 2500);
     }
 
@@ -799,10 +807,17 @@ function positionTickerBelowHeader(){
     }
     window.addEventListener("resize", () => {
         positionTickerBelowHeader();
-        // textWidth/winWidth are re-measured continuously via measure()
-        // being called at natural trigger points, so a resize corrects
-        // itself on the next hand-off rather than needing a hard restart
         measure();
+    });
+
+    // if the tab was backgrounded (or the screen locked) for a while,
+    // requestAnimationFrame pauses — coming back with a huge elapsed dt
+    // can make the ticker jump wildly or end up stuck blank. Simplest
+    // reliable fix: just restart the whole cycle fresh, like on page load.
+    document.addEventListener("visibilitychange", () => {
+        if(document.visibilityState === "visible"){
+            start();
+        }
     });
 })();
 
