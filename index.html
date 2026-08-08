@@ -3,15 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dane Arends | Sports Manager</title>
+<title>Dane Arends | High School Sports Manager — Basketball & Baseball</title>
 <!-- SEO -->
 <meta name="description" content="Official website of Dane Arends, High School Sports Manager. Basketball, baseball, leadership, game-day operations, and behind-the-scenes sports management.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://danearends.com/">
 
 <!-- Open Graph (Discord, Facebook, etc.) -->
 <meta property="og:title" content="Dane Arends | Sports Manager">
 <meta property="og:description" content="High School Sports Manager • Basketball • Baseball • Leadership • Game-Day Operations">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://danearends.com">
+<meta property="og:site_name" content="Dane Arends">
 <meta property="og:image" content="https://danearends.com/Dane%20Arends_20260619_060241_0000.png">
 
 <!-- Twitter/X -->
@@ -25,6 +28,69 @@
 <link href="https://fonts.googleapis.com/css2?family=Changa+One:ital@1&family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="icon" type="image/png" href="Dane Arends_20260619_060241_0000.png">
+
+<!-- Structured data: identifies Dane as a Person entity, this site as his
+     official WebSite, and marks up the on-page FAQ so it's machine-readable.
+     See the note at the end of this file for what this can and can't do. -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@graph": [
+        {
+            "@type": "Person",
+            "@id": "https://danearends.com/#person",
+            "name": "Dane Arends",
+            "url": "https://danearends.com/",
+            "image": "https://danearends.com/Dane%20Arends_20260619_060241_0000.png",
+            "jobTitle": "High School Sports Manager",
+            "description": "High school basketball and baseball team manager focused on game-day operations, equipment management, stat tracking, and behind-the-scenes team support.",
+            "sameAs": [
+                "https://www.instagram.com/danearends",
+                "https://www.tiktok.com/@danearends1",
+                "https://youtube.com/@danearends"
+            ]
+        },
+        {
+            "@type": "WebSite",
+            "@id": "https://danearends.com/#website",
+            "name": "Dane Arends | Sports Manager",
+            "url": "https://danearends.com/",
+            "about": { "@id": "https://danearends.com/#person" },
+            "inLanguage": "en-US"
+        },
+        {
+            "@type": "FAQPage",
+            "@id": "https://danearends.com/#faq",
+            "mainEntity": [
+                {
+                    "@type": "Question",
+                    "name": "What do you do?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Team operations, stats tracking, equipment, and game-day execution."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Is it stressful?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Yes, management can sometimes be stressful, but you gain valuable skills from doing it."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "What skills does sports management teach?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Leadership, communication, organization, and the ability to perform under pressure."
+                    }
+                }
+            ]
+        }
+    ]
+}
+</script>
     
 <style>
 :root{
