@@ -30,3 +30,471 @@ body{
 /* ===== HEADER (matches site header) ===== */
 .header{
     position:fixed; top:0; width:100%; z-index:1000;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 18px; background:#0d0d0df2; border-bottom:2px solid var(--red);
+}
+.header-left{ display:flex; align-items:center; gap:22px; }
+.header-title{ font-family:"Bebas Neue"; font-size:1.7rem; letter-spacing:3px; text-decoration:none; color:var(--white); }
+.header-nav{ display:flex; gap:18px; }
+.header-nav a{ font-family:"Bebas Neue"; letter-spacing:1px; font-size:0.95rem; color:var(--muted); text-decoration:none; padding-bottom:3px; border-bottom:2px solid transparent; transition:0.2s; }
+.header-nav a:hover{ color:var(--white); }
+.header-nav a.active{ color:var(--white); border-bottom-color:var(--red); }
+.clock{ font-family:"Bebas Neue"; color:var(--red); font-size:1.1rem; }
+@media(max-width:700px){ .header-nav{ display:none; } }
+
+/* ===== HERO ===== */
+.potw-hero{
+    padding:130px 8% 50px; text-align:center;
+    background:radial-gradient(circle at 50% 0%, #1c1c1c, #000 65%);
+    border-bottom:1px solid var(--line);
+}
+.eyebrow{ font-family:"Bebas Neue"; color:var(--red); letter-spacing:6px; font-size:0.9rem; }
+.potw-hero h1{ font-family:"Changa One"; font-size:2.6rem; margin-top:10px; }
+.potw-hero p{ color:var(--text); max-width:560px; margin:14px auto 0; line-height:1.6; }
+
+/* ===== MAIN CARD AREA ===== */
+.wrap{ max-width:760px; margin:0 auto; padding:50px 6% 90px; }
+
+.card{
+    background:var(--dark); border:1px solid var(--line); border-radius:14px;
+    padding:34px 30px; margin-bottom:26px;
+}
+
+.card-title{
+    font-family:"Bebas Neue"; letter-spacing:2px; color:var(--red);
+    font-size:1rem; text-align:center; margin-bottom:6px;
+}
+
+.card-sub{ text-align:center; color:var(--muted); font-size:0.85rem; margin-bottom:22px; }
+
+/* status / info banners */
+.status-note{
+    background:#0f0f0f; border:1px solid var(--line); border-radius:10px;
+    padding:16px 18px; text-align:center; color:var(--text); font-size:0.92rem; line-height:1.6;
+}
+.status-note b{ color:var(--white); }
+
+/* ===== PLAYER SELECT GRID ===== */
+.player-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(140px,1fr));
+    gap:14px; margin:22px 0;
+}
+.player-card{
+    background:#101010; border:2px solid var(--line); border-radius:12px;
+    padding:16px 10px; text-align:center; cursor:pointer; transition:0.2s;
+    user-select:none;
+}
+.player-card:hover{ border-color:#3a3a3a; }
+.player-card.selected{ border-color:var(--red); background:rgba(230,25,43,0.08); }
+.player-card.dimmed{ opacity:0.35; pointer-events:none; }
+.player-photo{
+    width:64px; height:64px; border-radius:50%; margin:0 auto 10px;
+    background:#1c1c1c; display:flex; align-items:center; justify-content:center;
+    font-family:"Bebas Neue"; font-size:1.3rem; color:var(--muted); overflow:hidden;
+}
+.player-photo img{ width:100%; height:100%; object-fit:cover; }
+.player-name{ font-family:"Bebas Neue"; letter-spacing:0.5px; font-size:0.95rem; }
+.player-number{ color:var(--muted); font-size:0.75rem; margin-top:2px; }
+
+.btn{
+    width:100%; padding:14px; border-radius:10px; border:none; cursor:pointer;
+    font-family:"Bebas Neue"; letter-spacing:1px; font-size:1rem; color:var(--white);
+    background:var(--red); transition:0.2s; margin-top:6px;
+}
+.btn:disabled{ background:#3a3a3a; cursor:not-allowed; }
+.btn:hover:not(:disabled){ filter:brightness(1.1); }
+.btn.secondary{ background:var(--dark); border:1px solid var(--line); }
+
+.input-row{ display:flex; gap:10px; flex-wrap:wrap; }
+.text-input{
+    flex:1; min-width:180px; background:#0f0f0f; border:1px solid var(--line);
+    border-radius:8px; padding:12px 14px; color:var(--white); font-family:Inter,sans-serif; font-size:0.9rem;
+}
+.text-input:focus{ outline:none; border-color:var(--red); }
+
+.error-text{ color:var(--red); font-size:0.85rem; margin-top:10px; text-align:center; }
+.hint-text{ color:var(--muted); font-size:0.8rem; margin-top:10px; text-align:center; line-height:1.5; }
+
+/* ===== WINNER REVEAL ===== */
+.reveal{
+    text-align:center; padding:20px 10px;
+}
+.reveal-badge{
+    display:inline-flex; align-items:center; gap:8px; background:rgba(230,25,43,0.12);
+    border:1px solid rgba(230,25,43,0.4); color:var(--red); font-family:"Bebas Neue";
+    letter-spacing:1px; font-size:0.8rem; padding:6px 14px; border-radius:20px; margin-bottom:18px;
+}
+.reveal-photo{
+    width:120px; height:120px; border-radius:50%; margin:0 auto 18px; overflow:hidden;
+    border:3px solid var(--red); background:#1c1c1c; display:flex; align-items:center; justify-content:center;
+    font-family:"Changa One"; font-size:2.4rem;
+}
+.reveal-photo img{ width:100%; height:100%; object-fit:cover; }
+.reveal-name{ font-family:"Changa One"; font-size:2.6rem; line-height:1.1; }
+.reveal-week{ color:var(--muted); font-family:"Bebas Neue"; letter-spacing:1px; margin-top:10px; }
+
+/* ===== ARCHIVE ===== */
+.list-label{
+    font-family:"Bebas Neue"; letter-spacing:2px; color:var(--muted); font-size:0.95rem;
+    margin:10px 0 16px; display:flex; align-items:center; gap:10px;
+}
+.list-label::after{ content:""; flex:1; height:1px; background:var(--line); }
+
+.archive-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 0; border-bottom:1px solid var(--line); font-size:0.92rem;
+}
+.archive-row:last-child{ border-bottom:none; }
+.archive-week{ color:var(--muted); font-family:"Bebas Neue"; letter-spacing:0.5px; }
+.archive-name{ display:flex; align-items:center; gap:8px; }
+
+.champion-banner{
+    text-align:center; background:linear-gradient(160deg, rgba(230,25,43,0.15), transparent 70%);
+    border:1px solid rgba(230,25,43,0.35); border-radius:14px; padding:34px 20px; margin-bottom:26px;
+}
+.champion-banner .eyebrow{ font-size:0.85rem; }
+.champion-banner h2{ font-family:"Changa One"; font-size:2.2rem; margin-top:10px; }
+
+footer{ text-align:center; padding:30px; color:#555; font-size:0.85rem; border-top:1px solid var(--line); }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-left">
+        <a href="/" class="header-title">DANE ARENDS</a>
+        <nav class="header-nav">
+            <a href="/">Home</a>
+            <a href="#" class="active">Player of the Week</a>
+        </nav>
+    </div>
+    <div class="clock" id="clock">--:--</div>
+</div>
+
+<section class="potw-hero">
+    <div class="eyebrow">FAN VOTING PROGRAM</div>
+    <h1>People's Choice Player of the Week</h1>
+    <p>Every week during the season, fans vote for the player who stood out most. Results are kept sealed until voting closes — no leaderboard, no running totals, just the final call once the polls shut.</p>
+</section>
+
+<div class="wrap">
+
+    <div class="card" id="voteCard">
+        <div class="card-title">PEOPLE'S CHOICE PLAYER OF THE WEEK</div>
+        <div class="card-sub" id="weekSub">Loading this week's poll…</div>
+        <div id="voteCardBody">
+            <div class="status-note">Loading…</div>
+        </div>
+    </div>
+
+    <div id="archiveSection"></div>
+
+</div>
+
+<footer>© <script>document.write(new Date().getFullYear())</script> Dane Arends • Sports Manager</footer>
+
+<script type="module">
+/* =========================================================
+   CONFIG — fill these in after you create your Supabase
+   project (see README-potw-deployment.md). The anon key is
+   safe to expose publicly by design — real authorization is
+   enforced server-side by Row Level Security and the edge
+   functions, not by hiding this key.
+   ========================================================= */
+const SUPABASE_URL = "https://glknsdyjqftdlrqvmqan.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdsa25zZHlqcWZ0ZGxycXZtcWFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzNTE3MzUsImV4cCI6MjEwNDkyNzczNX0.KxcFJXwiL6W3-20M7RixMzH8z8XtCgnDTvxRlnaQ_Vc";
+// The season shown on this page. Set this to the active season's id
+// once you've created it via the admin dashboard.
+const SEASON_ID = "YOUR-SEASON-ID";
+
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ---- clock (matches site header) ---- */
+function updateClock(){
+    const now = new Date();
+    let h = now.getHours();
+    const m = String(now.getMinutes()).padStart(2,"0");
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12; h = h ? h : 12;
+    document.getElementById("clock").textContent = `${h}:${m} ${ampm}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* ---- state ---- */
+let currentPoll = null;      // row from public_poll_results (the poll being displayed)
+let players = [];            // eligible players for currentPoll
+let selectedPlayerId = null;
+let awaitingCode = false;
+
+const bodyEl = document.getElementById("voteCardBody");
+const subEl = document.getElementById("weekSub");
+
+function fmtDateTime(iso){
+    return new Date(iso).toLocaleString("en-US", {
+        weekday:"short", month:"short", day:"numeric", hour:"numeric", minute:"2-digit"
+    });
+}
+
+/* =========================================================
+   LOAD the most relevant poll to show:
+   - If there's a tiebreaker poll that isn't published yet and is
+     within its own voting window (or upcoming), prefer showing that,
+     since it's the one that currently needs votes.
+   - Otherwise show the most recent weekly poll.
+   ========================================================= */
+async function loadCurrentPoll(){
+    const { data: polls, error } = await supabase
+        .from("public_poll_results")
+        .select("*")
+        .eq("season_id", SEASON_ID)
+        .order("opens_at", { ascending: false })
+        .limit(10);
+
+    if (error || !polls || polls.length === 0) {
+        bodyEl.innerHTML = `<div class="status-note">No poll is set up yet. Check back soon.</div>`;
+        return;
+    }
+
+    // Prefer an unpublished tiebreaker over its unpublished parent
+    const openTiebreaker = polls.find(p => p.poll_type === "tiebreaker" && p.status !== "published");
+    currentPoll = openTiebreaker || polls.find(p => p.poll_type === "weekly") || polls[0];
+
+    const { data: eligible } = await supabase
+        .from("poll_eligible_players")
+        .select("player_id, players(id, name, jersey_number, photo_url)")
+        .eq("poll_id", currentPoll.poll_id);
+
+    players = (eligible || []).map(e => e.players);
+
+    render();
+}
+
+function render(){
+    if (!currentPoll) return;
+
+    const now = new Date(); // display-only; the server independently enforces the real window
+    const opens = new Date(currentPoll.opens_at);
+    const closes = new Date(currentPoll.closes_at);
+
+    subEl.textContent = currentPoll.poll_type === "tiebreaker"
+        ? "Tiebreaker Round"
+        : (currentPoll.week_number ? `Week ${currentPoll.week_number}` : "");
+
+    if (currentPoll.status === "published") {
+        renderWinner();
+    } else if (now < opens) {
+        bodyEl.innerHTML = `<div class="status-note">Voting opens <b>${fmtDateTime(currentPoll.opens_at)}</b>. Check back then to cast your vote.</div>`;
+    } else if (now >= closes || currentPoll.status === "awaiting_tiebreaker" && currentPoll.poll_type === "weekly") {
+        bodyEl.innerHTML = `<div class="status-note">Voting has closed. The winner will be announced <b>${fmtDateTime(currentPoll.publish_at)}</b>.</div>`;
+    } else {
+        renderVoting();
+    }
+
+    loadArchive();
+}
+
+function renderWinner(){
+    const winner = players.find(p => p.id === currentPoll.winner_player_id);
+    bodyEl.innerHTML = `
+        <div class="reveal">
+            <div class="reveal-badge"><i class="fa-solid fa-trophy"></i> People's Choice Player of the Week</div>
+            <div class="reveal-photo">
+                ${winner?.photo_url ? `<img src="${winner.photo_url}" alt="${winner.name}">` : (winner?.name?.[0] ?? "?")}
+            </div>
+            <div class="reveal-name">${winner ? winner.name : "Winner"}</div>
+            <div class="reveal-week">${currentPoll.week_number ? "WEEK " + currentPoll.week_number : ""}</div>
+        </div>
+    `;
+}
+
+function renderVoting(){
+    if (!supabase.auth.getSession) return;
+
+    bodyEl.innerHTML = `
+        <div id="authStep"></div>
+        <div id="pickStep" style="display:none;">
+            <div class="player-grid" id="playerGrid"></div>
+            <button class="btn" id="submitVoteBtn" disabled>Submit Vote</button>
+            <div class="error-text" id="voteError" style="display:none;"></div>
+        </div>
+    `;
+    renderAuthStep();
+}
+
+async function renderAuthStep(){
+    const { data: { session } } = await supabase.auth.getSession();
+    const authStep = document.getElementById("authStep");
+
+    if (session?.user?.email) {
+        authStep.innerHTML = `<div class="hint-text">Voting as <b style="color:var(--white)">${session.user.email}</b></div>`;
+        showPlayerGrid();
+        return;
+    }
+
+    authStep.innerHTML = `
+        <div class="input-row">
+            <input type="email" class="text-input" id="emailInput" placeholder="you@example.com">
+            <button class="btn secondary" id="sendCodeBtn" style="width:auto; padding:12px 20px;">Send Code</button>
+        </div>
+        <div class="hint-text">We'll email you a one-time code to verify it's really you — this is what keeps voting to one ballot per person per week.</div>
+        <div class="error-text" id="authError" style="display:none;"></div>
+    `;
+
+    document.getElementById("sendCodeBtn").addEventListener("click", async () => {
+        const email = document.getElementById("emailInput").value.trim();
+        if (!email) return;
+        const { error } = await supabase.auth.signInWithOtp({ email });
+        const errEl = document.getElementById("authError");
+        if (error) {
+            errEl.textContent = error.message;
+            errEl.style.display = "block";
+            return;
+        }
+        authStep.innerHTML = `
+            <div class="input-row">
+                <input type="text" class="text-input" id="codeInput" placeholder="6-digit code">
+                <button class="btn secondary" id="verifyCodeBtn" style="width:auto; padding:12px 20px;">Verify</button>
+            </div>
+            <div class="error-text" id="authError" style="display:none;"></div>
+        `;
+        document.getElementById("verifyCodeBtn").addEventListener("click", async () => {
+            const code = document.getElementById("codeInput").value.trim();
+            const { error: verifyErr } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
+            const err2 = document.getElementById("authError");
+            if (verifyErr) {
+                err2.textContent = verifyErr.message;
+                err2.style.display = "block";
+                return;
+            }
+            renderAuthStep();
+        });
+    });
+}
+
+function showPlayerGrid(){
+    document.getElementById("pickStep").style.display = "block";
+    const grid = document.getElementById("playerGrid");
+    grid.innerHTML = players.map(p => `
+        <div class="player-card" data-id="${p.id}">
+            <div class="player-photo">${p.photo_url ? `<img src="${p.photo_url}" alt="${p.name}">` : p.name[0]}</div>
+            <div class="player-name">${p.name}</div>
+            ${p.jersey_number ? `<div class="player-number">#${p.jersey_number}</div>` : ""}
+        </div>
+    `).join("");
+
+    grid.querySelectorAll(".player-card").forEach(card => {
+        card.addEventListener("click", () => {
+            const id = card.dataset.id;
+            if (selectedPlayerId === id) {
+                // clicking the already-selected player clears the selection
+                selectedPlayerId = null;
+            } else {
+                selectedPlayerId = id;
+            }
+            updateGridVisuals();
+        });
+    });
+
+    document.getElementById("submitVoteBtn").addEventListener("click", submitVote);
+}
+
+function updateGridVisuals(){
+    document.querySelectorAll(".player-card").forEach(card => {
+        const id = card.dataset.id;
+        card.classList.toggle("selected", id === selectedPlayerId);
+        card.classList.toggle("dimmed", selectedPlayerId !== null && id !== selectedPlayerId);
+    });
+    document.getElementById("submitVoteBtn").disabled = !selectedPlayerId;
+}
+
+async function submitVote(){
+    const btn = document.getElementById("submitVoteBtn");
+    const errEl = document.getElementById("voteError");
+    errEl.style.display = "none";
+    btn.disabled = true;
+    btn.textContent = "Submitting…";
+
+    const { error } = await supabase.rpc("cast_vote", {
+        p_poll_id: currentPoll.poll_id,
+        p_player_id: selectedPlayerId
+    });
+
+    if (error) {
+        errEl.textContent = error.message || "Something went wrong submitting your vote.";
+        errEl.style.display = "block";
+        btn.disabled = false;
+        btn.textContent = "Submit Vote";
+        return;
+    }
+
+    bodyEl.innerHTML = `<div class="status-note">✓ Your vote is in. Come back <b>${fmtDateTime(currentPoll.publish_at)}</b> to see who won.</div>`;
+}
+
+/* =========================================================
+   ARCHIVE — past weekly winners + season champion (only shown
+   once the season is marked concluded). Never shows vote counts.
+   ========================================================= */
+async function loadArchive(){
+    const { data: season } = await supabase
+        .from("seasons")
+        .select("*")
+        .eq("id", SEASON_ID)
+        .single();
+
+    const { data: polls } = await supabase
+        .from("public_poll_results")
+        .select("*")
+        .eq("season_id", SEASON_ID)
+        .eq("poll_type", "weekly")
+        .order("week_number", { ascending: true });
+
+    const { data: allPlayers } = await supabase
+        .from("players")
+        .select("id, name")
+        .eq("season_id", SEASON_ID);
+
+    const nameById = Object.fromEntries((allPlayers || []).map(p => [p.id, p.name]));
+
+    let championHtml = "";
+    if (season && season.is_active === false) {
+        const { data: champ } = await supabase.rpc("public_season_champion", { p_season_id: SEASON_ID });
+        if (champ && champ.length > 0) {
+            championHtml = `
+                <div class="champion-banner">
+                    <div class="eyebrow">🏆 PEOPLE'S CHOICE PLAYER OF THE SEASON</div>
+                    <h2>${champ[0].player_name}</h2>
+                </div>
+            `;
+        }
+    }
+
+    const rows = (polls || [])
+        .filter(p => p.status === "published")
+        .map(p => `
+            <div class="archive-row">
+                <span class="archive-week">WEEK ${p.week_number}</span>
+                <span class="archive-name">🏆 ${nameById[p.winner_player_id] || "—"}</span>
+            </div>
+        `).join("");
+
+    document.getElementById("archiveSection").innerHTML = `
+        ${championHtml}
+        <div class="list-label">${season ? season.label : ""} — Past Winners</div>
+        <div class="card">
+            ${rows || `<div class="status-note">No winners published yet this season.</div>`}
+        </div>
+    `;
+}
+
+/* re-render on auth state changes (e.g. after email verification) */
+supabase.auth.onAuthStateChange(() => {
+    if (currentPoll && currentPoll.status !== "published") render();
+});
+
+loadCurrentPoll();
+</script>
+
+</body>
+</html>
