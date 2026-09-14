@@ -10,51 +10,93 @@
 <style>
 :root{ --red:#E6192B; --black:#0b0b0b; --dark:#141414; --white:#fff; --text:#cfcfcf; --line:#242424; --muted:#888; }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{ background:var(--black); color:var(--white); font-family:Inter,sans-serif; padding:40px 20px; }
+body{ background:var(--black); color:var(--white); font-family:Inter,sans-serif; }
+
+/* ---- shared page container: everything centers within this ---- */
+.page{ max-width:720px; margin:0 auto; padding:50px 20px 80px; }
+
 h1{ font-family:"Bebas Neue"; letter-spacing:2px; font-size:1.8rem; margin-bottom:6px; }
-.subtitle{ color:var(--muted); font-size:0.85rem; margin-bottom:30px; }
-.card{ background:var(--dark); border:1px solid var(--line); border-radius:12px; padding:26px; margin-bottom:20px; max-width:720px; }
-.card h2{ font-family:"Bebas Neue"; letter-spacing:1px; color:var(--red); font-size:1.1rem; margin-bottom:16px; }
-label{ display:block; font-size:0.8rem; color:var(--muted); margin:12px 0 4px; }
+.subtitle{ color:var(--muted); font-size:0.85rem; }
+
+.card{ background:var(--dark); border:1px solid var(--line); border-radius:12px; padding:26px; margin-bottom:20px; }
+.card h2{ font-family:"Bebas Neue"; letter-spacing:1px; color:var(--red); font-size:1.1rem; margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--line); }
+
+label{ display:block; font-size:0.8rem; color:var(--muted); margin:14px 0 5px; }
+label:first-of-type{ margin-top:0; }
 input, select{
     width:100%; background:#0f0f0f; border:1px solid var(--line); border-radius:8px;
     padding:10px 12px; color:var(--white); font-family:Inter,sans-serif; font-size:0.9rem;
 }
 input:focus, select:focus{ outline:none; border-color:var(--red); }
+
+.field-row{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media(max-width:520px){ .field-row{ grid-template-columns:1fr; } }
+
 button{
-    margin-top:16px; background:var(--red); color:var(--white); border:none; border-radius:8px;
-    padding:11px 18px; font-family:"Bebas Neue"; letter-spacing:1px; font-size:0.9rem; cursor:pointer;
+    margin-top:18px; background:var(--red); color:var(--white); border:none; border-radius:8px;
+    padding:11px 20px; font-family:"Bebas Neue"; letter-spacing:1px; font-size:0.9rem; cursor:pointer;
+    transition:filter 0.15s;
 }
+button:hover:not(:disabled){ filter:brightness(1.1); }
 button.secondary{ background:transparent; border:1px solid var(--line); color:var(--text); }
 button.small{ margin:0; padding:6px 10px; font-size:0.75rem; }
 button.danger{ background:transparent; border:1px solid var(--red); color:var(--red); }
 button:disabled{ opacity:0.5; cursor:not-allowed; }
-.msg{ margin-top:12px; font-size:0.85rem; }
+
+.msg{ margin-top:12px; font-size:0.85rem; line-height:1.5; }
 .msg.error{ color:var(--red); }
 .msg.ok{ color:#5fbf6a; }
-table{ width:100%; border-collapse:collapse; font-size:0.85rem; margin-top:10px; }
-th, td{ text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); }
-th{ color:var(--muted); font-weight:600; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; }
-.checkbox-row{ display:flex; align-items:center; gap:8px; padding:6px 0; }
+.msg.note{ color:var(--muted); }
+
+table{ width:100%; border-collapse:collapse; font-size:0.85rem; margin-top:4px; }
+th, td{ text-align:left; padding:10px 8px; border-bottom:1px solid var(--line); }
+th{ color:var(--muted); font-weight:600; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.6px; }
+tbody tr:hover{ background:rgba(255,255,255,0.02); }
+td:last-child, th:last-child{ text-align:right; }
+
+.checkbox-row{ display:flex; align-items:center; gap:8px; padding:7px 0; }
+
+/* ---- login screen: its own centered mini-layout ---- */
+#loginScreen{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+}
+#loginCard{ width:100%; max-width:380px; text-align:left; }
+#loginCard .subtitle{ margin-bottom:26px; }
+
+/* ---- app header bar ---- */
+.app-header{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    margin-bottom:34px; padding-bottom:22px; border-bottom:1px solid var(--line);
+}
+.app-header h1{ font-size:1.5rem; }
+
 #app{ display:none; }
 </style>
 </head>
 <body>
 
-<div id="loginCard" class="card">
-    <h1>Admin Login</h1>
-    <div class="subtitle">People's Choice Player of the Week</div>
-    <label>Email</label>
-    <input type="email" id="loginEmail">
-    <label>Password</label>
-    <input type="password" id="loginPassword">
-    <button id="loginBtn">Log In</button>
-    <div class="msg error" id="loginMsg" style="display:none;"></div>
+<div id="loginScreen">
+    <div id="loginCard" class="card">
+        <h1>Admin Login</h1>
+        <div class="subtitle">People's Choice Player of the Week</div>
+        <label>Email</label>
+        <input type="email" id="loginEmail">
+        <label>Password</label>
+        <input type="password" id="loginPassword">
+        <button id="loginBtn">Log In</button>
+        <div class="msg error" id="loginMsg" style="display:none;"></div>
+    </div>
 </div>
 
 <div id="app">
-    <h1>People's Choice Player of the Week — Admin</h1>
-    <div class="subtitle" id="whoAmI"></div>
+<div class="page">
+    <div class="app-header">
+        <div>
+            <h1>People's Choice — Admin</h1>
+            <div class="subtitle" id="whoAmI"></div>
+        </div>
+        <button class="secondary small" id="logoutBtn">Log Out</button>
+    </div>
 
     <div class="card">
         <h2>Seasons</h2>
@@ -75,25 +117,37 @@ th{ color:var(--muted); font-weight:600; font-size:0.75rem; text-transform:upper
         <table id="playersTable"><thead><tr><th>Name</th><th>#</th><th></th></tr></thead><tbody></tbody></table>
         <label>Player name</label>
         <input type="text" id="newPlayerName">
-        <label>Jersey number (optional)</label>
-        <input type="number" id="newPlayerNumber">
-        <label>Photo URL (optional)</label>
-        <input type="text" id="newPlayerPhoto">
+        <div class="field-row">
+            <div>
+                <label>Jersey number (optional)</label>
+                <input type="number" id="newPlayerNumber">
+            </div>
+            <div>
+                <label>Photo URL (optional)</label>
+                <input type="text" id="newPlayerPhoto">
+            </div>
+        </div>
         <button id="createPlayerBtn">Add Player</button>
         <div class="msg" id="playerMsg" style="display:none;"></div>
     </div>
 
     <div class="card">
         <h2>Create Weekly Poll</h2>
-        <label>Week number</label>
-        <input type="number" id="pollWeekNumber">
-        <label>Friday this week's voting opens (10:00 PM Central that day)</label>
-        <input type="date" id="pollFridayDate">
+        <div class="field-row">
+            <div>
+                <label>Week number</label>
+                <input type="number" id="pollWeekNumber">
+            </div>
+            <div>
+                <label>Friday voting opens (10:00 PM Central)</label>
+                <input type="date" id="pollFridayDate">
+            </div>
+        </div>
         <label>Eligible players</label>
         <div id="eligiblePlayersList"></div>
         <button id="createPollBtn">Create Poll</button>
         <div class="msg" id="pollMsg" style="display:none;"></div>
-        <div class="msg" style="color:var(--muted); margin-top:14px;">
+        <div class="msg note" style="margin-top:14px;">
             Schedule is computed automatically: opens Friday 10:00 PM, closes the
             following Wednesday 12:00 AM, publishes that Wednesday 8:00 AM — all
             Central Time, DST-aware.
@@ -102,7 +156,7 @@ th{ color:var(--muted); font-weight:600; font-size:0.75rem; text-transform:upper
 
     <div class="card">
         <h2>Test a Poll Yourself</h2>
-        <div class="msg" style="color:var(--muted); margin-bottom:14px;">
+        <div class="msg note" style="margin-bottom:14px;">
             Creates a real poll that opens immediately, using the exact same
             voting flow, timing rules, and tie-break automation as a real
             weekly poll — email verification, hidden results, everything.
@@ -133,7 +187,7 @@ th{ color:var(--muted); font-weight:600; font-size:0.75rem; text-transform:upper
         <table id="standingsTable"><thead><tr><th>Player</th><th>POTW Wins</th><th>Total Votes</th></tr></thead><tbody></tbody></table>
     </div>
 
-    <button class="secondary" id="logoutBtn">Log Out</button>
+</div>
 </div>
 
 <script type="module">
