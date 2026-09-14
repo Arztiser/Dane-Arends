@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>People's Choice Player of the Week | Dane Arends</title>
+<meta name="description" content="Vote for the People's Choice Player of the Week — a fan-voting program for the basketball season, run by team manager Dane Arends.">
+
+<link href="https://fonts.googleapis.com/css2?family=Changa+One:ital@1&family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+:root{
+    --red:#E6192B;
+    --black:#0b0b0b;
+    --dark:#141414;
+    --white:#fff;
+    --text:#cfcfcf;
+    --muted:#888;
+    --line:#242424;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+    background:var(--black);
+    color:var(--white);
+    font-family:Inter,sans-serif;
+    overflow-x:hidden;
+}
+
+/* ===== HEADER (matches site header) ===== */
+.header{
+    position:fixed; top:0; width:100%; z-index:1000;
