@@ -205,7 +205,7 @@ const SUPABASE_URL = "https://glknsdyjqftdlrqvmqan.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdsa25zZHlqcWZ0ZGxycXZtcWFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzNTE3MzUsImV4cCI6MjEwNDkyNzczNX0.KxcFJXwiL6W3-20M7RixMzH8z8XtCgnDTvxRlnaQ_Vc";
 // The season shown on this page. Set this to the active season's id
 // once you've created it via the admin dashboard.
-const SEASON_ID = "2026-27 Season";
+const SEASON_ID = "YOUR-SEASON-ID";
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -245,21 +245,37 @@ function fmtDateTime(iso){
    - Otherwise show the most recent weekly poll.
    ========================================================= */
 async function loadCurrentPoll(){
-    const { data: polls, error } = await supabase
-        .from("public_poll_results")
-        .select("*")
-        .eq("season_id", SEASON_ID)
-        .order("opens_at", { ascending: false })
-        .limit(10);
+    const forcedPollId = new URLSearchParams(location.search).get("poll");
 
-    if (error || !polls || polls.length === 0) {
-        bodyEl.innerHTML = `<div class="status-note">No poll is set up yet. Check back soon.</div>`;
-        return;
+    if (forcedPollId) {
+        const { data: poll, error } = await supabase
+            .from("public_poll_results")
+            .select("*")
+            .eq("poll_id", forcedPollId)
+            .single();
+
+        if (error || !poll) {
+            bodyEl.innerHTML = `<div class="status-note">Couldn't find that poll — it may have been deleted.</div>`;
+            return;
+        }
+        currentPoll = poll;
+    } else {
+        const { data: polls, error } = await supabase
+            .from("public_poll_results")
+            .select("*")
+            .eq("season_id", SEASON_ID)
+            .order("opens_at", { ascending: false })
+            .limit(10);
+
+        if (error || !polls || polls.length === 0) {
+            bodyEl.innerHTML = `<div class="status-note">No poll is set up yet. Check back soon.</div>`;
+            return;
+        }
+
+        // Prefer an unpublished tiebreaker over its unpublished parent
+        const openTiebreaker = polls.find(p => p.poll_type === "tiebreaker" && p.status !== "published");
+        currentPoll = openTiebreaker || polls.find(p => p.poll_type === "weekly") || polls[0];
     }
-
-    // Prefer an unpublished tiebreaker over its unpublished parent
-    const openTiebreaker = polls.find(p => p.poll_type === "tiebreaker" && p.status !== "published");
-    currentPoll = openTiebreaker || polls.find(p => p.poll_type === "weekly") || polls[0];
 
     const { data: eligible } = await supabase
         .from("poll_eligible_players")
