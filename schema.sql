@@ -61,13 +61,13 @@ create table players (
 -- as (now() between opens_at and closes_at), so it can't drift out of
 -- sync with real time.
 -- ---------------------------------------------------------------------
-create type poll_type as enum ('weekly', 'tiebreaker');
+create type poll_type as enum ('weekly', 'tiebreaker', 'test');
 create type poll_status as enum ('scheduled', 'awaiting_tiebreaker', 'decided', 'published');
 
 create table polls (
     id                  uuid primary key default gen_random_uuid(),
     season_id           uuid not null references seasons(id) on delete cascade,
-    parent_poll_id      uuid references polls(id),
+    parent_poll_id      uuid references polls(id) on delete cascade,
     poll_type           poll_type not null default 'weekly',
     week_number         int,
     opens_at            timestamptz not null,
@@ -101,11 +101,15 @@ create table poll_eligible_players (
 -- atomically, even under concurrent duplicate requests. There is no
 -- INSERT policy on this table for anyone — the only way a row is ever
 -- created is through cast_vote(), which runs as SECURITY DEFINER.
+--
+-- player_id deliberately does NOT cascade on delete: a player with
+-- recorded votes should block deletion (via delete_player() below)
+-- rather than silently erasing vote history / corrupting a tally.
 -- ---------------------------------------------------------------------
 create table votes (
     id          uuid primary key default gen_random_uuid(),
     poll_id     uuid not null references polls(id) on delete cascade,
-    player_id   uuid not null references players(id) on delete cascade,
+    player_id   uuid not null references players(id),
     voter_hash  text not null,
     created_at  timestamptz not null default now(),
     unique (poll_id, voter_hash)
@@ -298,6 +302,104 @@ revoke execute on function create_weekly_poll(uuid, int, date, uuid[]) from publ
 grant execute on function create_weekly_poll(uuid, int, date, uuid[]) to authenticated;
 
 -- =====================================================================
+-- delete_poll() — admin-only. Deleting a poll cascades to its
+-- eligible-player list, its votes, and (thanks to parent_poll_id ON
+-- DELETE CASCADE on the polls table) any tiebreaker rounds spawned
+-- from it. This permanently removes it from the public archive if it
+-- was ever published — there's no undo, so the admin UI confirms
+-- before calling this.
+-- =====================================================================
+create or replace function delete_poll(p_poll_id uuid) returns void
+language plpgsql
+security definer
+as $$
+begin
+    if not is_admin(auth.uid()) then
+        raise exception 'Not authorized.';
+    end if;
+
+    delete from polls where id = p_poll_id;
+end;
+$$;
+revoke execute on function delete_poll(uuid) from public;
+grant execute on function delete_poll(uuid) to authenticated;
+
+-- =====================================================================
+-- delete_player() — admin-only. A player who has any recorded votes,
+-- or who has won a poll, cannot be deleted — that's enforced by the
+-- (deliberately non-cascading) foreign keys on votes.player_id and
+-- polls.winner_player_id, not just by this function. This catches
+-- that and turns it into a clear message rather than a raw DB error.
+-- =====================================================================
+create or replace function delete_player(p_player_id uuid) returns void
+language plpgsql
+security definer
+as $$
+begin
+    if not is_admin(auth.uid()) then
+        raise exception 'Not authorized.';
+    end if;
+
+    begin
+        delete from players where id = p_player_id;
+    exception when foreign_key_violation then
+        raise exception 'This player has votes recorded (or has won a poll) and can''t be removed. You can still leave them off future weeks by unchecking them when creating a poll.';
+    end;
+end;
+$$;
+revoke execute on function delete_player(uuid) from public;
+grant execute on function delete_player(uuid) to authenticated;
+
+-- =====================================================================
+-- create_test_poll() — admin-only. Opens immediately and closes after
+-- p_duration_minutes (default 5), so you can walk through the real
+-- voting flow yourself — email OTP, selecting a player, hidden
+-- results, the automated close/publish cycle, even a tie triggering a
+-- real tiebreaker round — without waiting for a real Friday-to-
+-- Wednesday window.
+--
+-- poll_type = 'test' rather than 'weekly' on purpose: it goes through
+-- the exact same automation as a real poll, but is excluded from the
+-- public archive, season standings, and season vote totals, so
+-- testing never contaminates real season data.
+-- =====================================================================
+create or replace function create_test_poll(
+    p_season_id uuid,
+    p_eligible_player_ids uuid[],
+    p_duration_minutes int default 5
+) returns uuid
+language plpgsql
+security definer
+as $$
+declare
+    v_poll_id uuid;
+    v_closes  timestamptz;
+    v_player  uuid;
+begin
+    if not is_admin(auth.uid()) then
+        raise exception 'Not authorized.';
+    end if;
+    if array_length(p_eligible_player_ids, 1) is null or array_length(p_eligible_player_ids, 1) < 2 then
+        raise exception 'Pick at least 2 players for the test poll.';
+    end if;
+
+    v_closes := now() + make_interval(mins => greatest(p_duration_minutes, 1));
+
+    insert into polls (season_id, poll_type, week_number, opens_at, closes_at, publish_at, status)
+    values (p_season_id, 'test', null, now(), v_closes, v_closes + interval '1 minute', 'scheduled')
+    returning id into v_poll_id;
+
+    foreach v_player in array p_eligible_player_ids loop
+        insert into poll_eligible_players (poll_id, player_id) values (v_poll_id, v_player);
+    end loop;
+
+    return v_poll_id;
+end;
+$$;
+revoke execute on function create_test_poll(uuid, uuid[], int) from public;
+grant execute on function create_test_poll(uuid, uuid[], int) to authenticated;
+
+-- =====================================================================
 -- admin_poll_vote_counts() — admin-only (checked internally). The only
 -- way raw vote counts are ever readable, by anyone, for any reason.
 -- =====================================================================
@@ -351,7 +453,7 @@ begin
     vote_totals as (
         select v.player_id as pid, count(*) as total
         from votes v join polls p on p.id = v.poll_id
-        where p.season_id = p_season_id
+        where p.season_id = p_season_id and p.poll_type = 'weekly'
         group by v.player_id
     )
     select pl.id, pl.name, coalesce(ww.wins,0), coalesce(vt.total,0)
@@ -386,7 +488,7 @@ as $$
     vote_totals as (
         select v.player_id as pid, count(*) as total
         from votes v join polls p on p.id = v.poll_id
-        where p.season_id = p_season_id
+        where p.season_id = p_season_id and p.poll_type = 'weekly'
         group by v.player_id
     ),
     ranked as (
@@ -478,7 +580,7 @@ begin
                 select p.id, p.poll_type, p.parent_poll_id
                 from polls p join chain c on p.id = c.parent_poll_id
             )
-            select id into v_root_id from chain where poll_type = 'weekly' limit 1;
+            select id into v_root_id from chain where poll_type in ('weekly','test') limit 1;
 
             if v_root_id is not null then
                 update polls set status = 'published', winner_player_id = r.winner_player_id
