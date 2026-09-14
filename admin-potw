@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — People's Choice Player of the Week</title>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+:root{ --red:#E6192B; --black:#0b0b0b; --dark:#141414; --white:#fff; --text:#cfcfcf; --line:#242424; --muted:#888; }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{ background:var(--black); color:var(--white); font-family:Inter,sans-serif; padding:40px 20px; }
+h1{ font-family:"Bebas Neue"; letter-spacing:2px; font-size:1.8rem; margin-bottom:6px; }
+.subtitle{ color:var(--muted); font-size:0.85rem; margin-bottom:30px; }
+.card{ background:var(--dark); border:1px solid var(--line); border-radius:12px; padding:26px; margin-bottom:20px; max-width:720px; }
+.card h2{ font-family:"Bebas Neue"; letter-spacing:1px; color:var(--red); font-size:1.1rem; margin-bottom:16px; }
+label{ display:block; font-size:0.8rem; color:var(--muted); margin:12px 0 4px; }
+input, select{
+    width:100%; background:#0f0f0f; border:1px solid var(--line); border-radius:8px;
+    padding:10px 12px; color:var(--white); font-family:Inter,sans-serif; font-size:0.9rem;
+}
+input:focus, select:focus{ outline:none; border-color:var(--red); }
+button{
+    margin-top:16px; background:var(--red); color:var(--white); border:none; border-radius:8px;
+    padding:11px 18px; font-family:"Bebas Neue"; letter-spacing:1px; font-size:0.9rem; cursor:pointer;
+}
+button.secondary{ background:transparent; border:1px solid var(--line); color:var(--text); }
+button:disabled{ opacity:0.5; cursor:not-allowed; }
+.msg{ margin-top:12px; font-size:0.85rem; }
+.msg.error{ color:var(--red); }
+.msg.ok{ color:#5fbf6a; }
+table{ width:100%; border-collapse:collapse; font-size:0.85rem; margin-top:10px; }
+th, td{ text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); }
+th{ color:var(--muted); font-weight:600; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; }
+.checkbox-row{ display:flex; align-items:center; gap:8px; padding:6px 0; }
+#app{ display:none; }
+</style>
+</head>
+<body>
+
+<div id="loginCard" class="card">
+    <h1>Admin Login</h1>
+    <div class="subtitle">People's Choice Player of the Week</div>
+    <label>Email</label>
+    <input type="email" id="loginEmail">
+    <label>Password</label>
+    <input type="password" id="loginPassword">
+    <button id="loginBtn">Log In</button>
+    <div class="msg error" id="loginMsg" style="display:none;"></div>
+</div>
+
+<div id="app">
+    <h1>People's Choice Player of the Week — Admin</h1>
+    <div class="subtitle" id="whoAmI"></div>
+
+    <div class="card">
+        <h2>Seasons</h2>
+        <table id="seasonsTable"><thead><tr><th>Label</th><th>Starts</th><th>Active</th></tr></thead><tbody></tbody></table>
+        <label>New season label</label>
+        <input type="text" id="newSeasonLabel" placeholder="2026–27 Season">
+        <label>Starts on</label>
+        <input type="date" id="newSeasonStart">
+        <button id="createSeasonBtn">Create Season</button>
+        <div class="msg" id="seasonMsg" style="display:none;"></div>
+
+        <label style="margin-top:20px;">Active season for the rest of this dashboard</label>
+        <select id="seasonSelect"></select>
+    </div>
+
+    <div class="card">
+        <h2>Players</h2>
+        <table id="playersTable"><thead><tr><th>Name</th><th>#</th></tr></thead><tbody></tbody></table>
+        <label>Player name</label>
+        <input type="text" id="newPlayerName">
+        <label>Jersey number (optional)</label>
+        <input type="number" id="newPlayerNumber">
+        <label>Photo URL (optional)</label>
+        <input type="text" id="newPlayerPhoto">
+        <button id="createPlayerBtn">Add Player</button>
+        <div class="msg" id="playerMsg" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+        <h2>Create Weekly Poll</h2>
+        <label>Week number</label>
+        <input type="number" id="pollWeekNumber">
+        <label>Friday this week's voting opens (10:00 PM Central that day)</label>
+        <input type="date" id="pollFridayDate">
+        <label>Eligible players</label>
+        <div id="eligiblePlayersList"></div>
+        <button id="createPollBtn">Create Poll</button>
+        <div class="msg" id="pollMsg" style="display:none;"></div>
+        <div class="msg" style="color:var(--muted); margin-top:14px;">
+            Schedule is computed automatically: opens Friday 10:00 PM, closes the
+            following Wednesday 12:00 AM, publishes that Wednesday 8:00 AM — all
+            Central Time, DST-aware.
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Polls This Season</h2>
+        <table id="pollsTable"><thead><tr><th>Week</th><th>Type</th><th>Status</th><th>Closes</th><th></th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <div class="card" id="voteCountsCard" style="display:none;">
+        <h2>Raw Vote Counts (admin-only — never shown publicly)</h2>
+        <table id="voteCountsTable"><thead><tr><th>Player</th><th>Votes</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <div class="card">
+        <h2>Season Standings</h2>
+        <button id="loadStandingsBtn" class="secondary">Load Standings</button>
+        <table id="standingsTable"><thead><tr><th>Player</th><th>POTW Wins</th><th>Total Votes</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <button class="secondary" id="logoutBtn">Log Out</button>
+</div>
+
+<script type="module">
+/* =========================================================
+   CONFIG — same project as potw.html
+   ========================================================= */
+const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR-ANON-KEY";
+
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentSeasonId = null;
+let currentPlayers = [];
+
+function showMsg(id, text, ok = false){
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = "msg " + (ok ? "ok" : "error");
+    el.style.display = "block";
+}
+
+/* ---------- auth ---------- */
+document.getElementById("loginBtn").addEventListener("click", async () => {
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { showMsg("loginMsg", error.message); return; }
+    boot();
+});
+
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    location.reload();
+});
+
+async function boot(){
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return; // stay on login screen
+
+    // am_i_admin() checks the `admins` table server-side. Every RLS
+    // policy and RPC function below ALSO re-checks this independently
+    // on every call — this is just so the UI doesn't sit there looking
+    // usable for a signed-in non-admin account.
+    const { data: isAdmin, error } = await supabase.rpc("am_i_admin");
+    if (error || !isAdmin) {
+        showMsg("loginMsg", "This account isn't authorized as an admin.");
+        await supabase.auth.signOut();
+        return;
+    }
+
+    document.getElementById("loginCard").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    document.getElementById("whoAmI").textContent = "Signed in as " + session.user.email;
+
+    await loadSeasons();
+}
+
+/* ---------- seasons ---------- */
+async function loadSeasons(){
+    const { data: seasons, error } = await supabase
+        .from("seasons")
+        .select("*")
+        .order("starts_on", { ascending: false });
+    if (error) return showMsg("seasonMsg", error.message);
+
+    const tbody = document.querySelector("#seasonsTable tbody");
+    tbody.innerHTML = seasons.map(s =>
+        `<tr><td>${s.label}</td><td>${s.starts_on}</td><td>${s.is_active ? "Yes" : "No"}</td></tr>`
+    ).join("");
+
+    const select = document.getElementById("seasonSelect");
+    select.innerHTML = seasons.map(s => `<option value="${s.id}">${s.label} (${s.id})</option>`).join("");
+    select.addEventListener("change", () => {
+        currentSeasonId = select.value;
+        loadPlayers();
+        loadPolls();
+    });
+
+    if (seasons.length > 0) {
+        currentSeasonId = seasons[0].id;
+        select.value = currentSeasonId;
+        await loadPlayers();
+        await loadPolls();
+    }
+}
+
+document.getElementById("createSeasonBtn").addEventListener("click", async () => {
+    const label = document.getElementById("newSeasonLabel").value.trim();
+    const starts_on = document.getElementById("newSeasonStart").value;
+    if (!label || !starts_on) return showMsg("seasonMsg", "Label and start date required.");
+    const { error } = await supabase.from("seasons").insert({ label, starts_on });
+    if (error) return showMsg("seasonMsg", error.message);
+    showMsg("seasonMsg", "Season created.", true);
+    await loadSeasons();
+});
+
+/* ---------- players ---------- */
+async function loadPlayers(){
+    if (!currentSeasonId) return;
+    const { data: players, error } = await supabase
+        .from("players")
+        .select("*")
+        .eq("season_id", currentSeasonId)
+        .order("name", { ascending: true });
+    if (error) return showMsg("playerMsg", error.message);
+
+    currentPlayers = players;
+    document.querySelector("#playersTable tbody").innerHTML = players.map(p =>
+        `<tr><td>${p.name}</td><td>${p.jersey_number ?? ""}</td></tr>`
+    ).join("");
+
+    document.getElementById("eligiblePlayersList").innerHTML = players.map(p => `
+        <div class="checkbox-row">
+            <input type="checkbox" value="${p.id}" class="eligible-checkbox" id="elig-${p.id}">
+            <label style="margin:0;" for="elig-${p.id}">${p.name}</label>
+        </div>
+    `).join("");
+}
+
+document.getElementById("createPlayerBtn").addEventListener("click", async () => {
+    if (!currentSeasonId) return showMsg("playerMsg", "Pick a season first.");
+    const name = document.getElementById("newPlayerName").value.trim();
+    const jersey_number = document.getElementById("newPlayerNumber").value || null;
+    const photo_url = document.getElementById("newPlayerPhoto").value.trim() || null;
+    if (!name) return showMsg("playerMsg", "Name required.");
+
+    const { error } = await supabase.from("players").insert({
+        season_id: currentSeasonId, name, jersey_number, photo_url
+    });
+    if (error) return showMsg("playerMsg", error.message);
+    showMsg("playerMsg", "Player added.", true);
+    document.getElementById("newPlayerName").value = "";
+    await loadPlayers();
+});
+
+/* ---------- polls ---------- */
+document.getElementById("createPollBtn").addEventListener("click", async () => {
+    if (!currentSeasonId) return showMsg("pollMsg", "Pick a season first.");
+    const weekNumber = parseInt(document.getElementById("pollWeekNumber").value, 10);
+    const fridayDate = document.getElementById("pollFridayDate").value;
+    const eligiblePlayerIds = Array.from(document.querySelectorAll(".eligible-checkbox:checked")).map(c => c.value);
+    if (!weekNumber || !fridayDate || eligiblePlayerIds.length < 2) {
+        return showMsg("pollMsg", "Week number, Friday date, and at least 2 eligible players required.");
+    }
+
+    const { error } = await supabase.rpc("create_weekly_poll", {
+        p_season_id: currentSeasonId,
+        p_week_number: weekNumber,
+        p_friday_date: fridayDate,
+        p_eligible_player_ids: eligiblePlayerIds
+    });
+    if (error) return showMsg("pollMsg", error.message);
+    showMsg("pollMsg", "Poll created.", true);
+    await loadPolls();
+});
+
+async function loadPolls(){
+    if (!currentSeasonId) return;
+    const { data: polls, error } = await supabase
+        .from("polls")
+        .select("*")
+        .eq("season_id", currentSeasonId)
+        .order("opens_at", { ascending: true });
+    if (error) return;
+
+    document.querySelector("#pollsTable tbody").innerHTML = polls.map(p => `
+        <tr>
+            <td>${p.week_number ?? "(tiebreaker)"}</td>
+            <td>${p.poll_type}</td>
+            <td>${p.status}</td>
+            <td>${new Date(p.closes_at).toLocaleString()}</td>
+            <td><button class="secondary view-votes-btn" data-id="${p.id}" style="margin:0; padding:6px 10px; font-size:0.75rem;">View Votes</button></td>
+        </tr>
+    `).join("");
+
+    document.querySelectorAll(".view-votes-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            const { data: counts, error: cErr } = await supabase.rpc("admin_poll_vote_counts", { p_poll_id: btn.dataset.id });
+            if (cErr) return;
+            document.getElementById("voteCountsCard").style.display = "block";
+            document.querySelector("#voteCountsTable tbody").innerHTML = counts
+                .map(c => `<tr><td>${c.player_name}</td><td>${c.vote_count}</td></tr>`).join("");
+        });
+    });
+}
+
+/* ---------- standings ---------- */
+document.getElementById("loadStandingsBtn").addEventListener("click", async () => {
+    if (!currentSeasonId) return;
+    const { data: standings, error } = await supabase.rpc("season_award_standings", { p_season_id: currentSeasonId });
+    if (error) return showMsg("seasonMsg", error.message);
+    document.querySelector("#standingsTable tbody").innerHTML = standings.map(s =>
+        `<tr><td>${s.player_name}</td><td>${s.potw_wins}</td><td>${s.total_votes}</td></tr>`
+    ).join("");
+});
+
+boot();
+</script>
+
+</body>
+</html>
