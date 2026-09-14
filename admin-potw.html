@@ -26,6 +26,8 @@ button{
     padding:11px 18px; font-family:"Bebas Neue"; letter-spacing:1px; font-size:0.9rem; cursor:pointer;
 }
 button.secondary{ background:transparent; border:1px solid var(--line); color:var(--text); }
+button.small{ margin:0; padding:6px 10px; font-size:0.75rem; }
+button.danger{ background:transparent; border:1px solid var(--red); color:var(--red); }
 button:disabled{ opacity:0.5; cursor:not-allowed; }
 .msg{ margin-top:12px; font-size:0.85rem; }
 .msg.error{ color:var(--red); }
@@ -57,7 +59,7 @@ th{ color:var(--muted); font-weight:600; font-size:0.75rem; text-transform:upper
     <div class="card">
         <h2>Seasons</h2>
         <table id="seasonsTable"><thead><tr><th>Label</th><th>Starts</th><th>Active</th></tr></thead><tbody></tbody></table>
-        <label>2026-27 Season</label>
+        <label>New season label</label>
         <input type="text" id="newSeasonLabel" placeholder="2026–27 Season">
         <label>Starts on</label>
         <input type="date" id="newSeasonStart">
@@ -70,7 +72,7 @@ th{ color:var(--muted); font-weight:600; font-size:0.75rem; text-transform:upper
 
     <div class="card">
         <h2>Players</h2>
-        <table id="playersTable"><thead><tr><th>Name</th><th>#</th></tr></thead><tbody></tbody></table>
+        <table id="playersTable"><thead><tr><th>Name</th><th>#</th><th></th></tr></thead><tbody></tbody></table>
         <label>Player name</label>
         <input type="text" id="newPlayerName">
         <label>Jersey number (optional)</label>
@@ -99,8 +101,25 @@ th{ color:var(--muted); font-weight:600; font-size:0.75rem; text-transform:upper
     </div>
 
     <div class="card">
+        <h2>Test a Poll Yourself</h2>
+        <div class="msg" style="color:var(--muted); margin-bottom:14px;">
+            Creates a real poll that opens immediately, using the exact same
+            voting flow, timing rules, and tie-break automation as a real
+            weekly poll — email verification, hidden results, everything.
+            It's tagged as a test, so it never shows up in the public archive
+            or counts toward season standings.
+        </div>
+        <label>Eligible players for the test</label>
+        <div id="testPlayersList"></div>
+        <label>Voting stays open for (minutes)</label>
+        <input type="number" id="testDurationInput" value="5" min="1" max="120">
+        <button id="createTestPollBtn">Create Test Poll</button>
+        <div class="msg" id="testPollMsg" style="display:none;"></div>
+    </div>
+
+    <div class="card">
         <h2>Polls This Season</h2>
-        <table id="pollsTable"><thead><tr><th>Week</th><th>Type</th><th>Status</th><th>Closes</th><th></th></tr></thead><tbody></tbody></table>
+        <table id="pollsTable"><thead><tr><th>Week</th><th>Type</th><th>Status</th><th>Closes</th><th></th><th></th></tr></thead><tbody></tbody></table>
     </div>
 
     <div class="card" id="voteCountsCard" style="display:none;">
@@ -223,14 +242,36 @@ async function loadPlayers(){
     if (error) return showMsg("playerMsg", error.message);
 
     currentPlayers = players;
-    document.querySelector("#playersTable tbody").innerHTML = players.map(p =>
-        `<tr><td>${p.name}</td><td>${p.jersey_number ?? ""}</td></tr>`
-    ).join("");
+    document.querySelector("#playersTable tbody").innerHTML = players.map(p => `
+        <tr>
+            <td>${p.name}</td>
+            <td>${p.jersey_number ?? ""}</td>
+            <td><button class="danger small delete-player-btn" data-id="${p.id}" data-name="${p.name}">Remove</button></td>
+        </tr>
+    `).join("");
 
-    document.getElementById("eligiblePlayersList").innerHTML = players.map(p => `
+    document.querySelectorAll(".delete-player-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            if (!confirm(`Remove ${btn.dataset.name}? This can't be undone.`)) return;
+            const { error: delErr } = await supabase.rpc("delete_player", { p_player_id: btn.dataset.id });
+            if (delErr) return showMsg("playerMsg", delErr.message);
+            showMsg("playerMsg", `${btn.dataset.name} removed.`, true);
+            await loadPlayers();
+        });
+    });
+
+    const eligibleHtml = players.map(p => `
         <div class="checkbox-row">
             <input type="checkbox" value="${p.id}" class="eligible-checkbox" id="elig-${p.id}">
             <label style="margin:0;" for="elig-${p.id}">${p.name}</label>
+        </div>
+    `).join("");
+    document.getElementById("eligiblePlayersList").innerHTML = eligibleHtml;
+
+    document.getElementById("testPlayersList").innerHTML = players.map(p => `
+        <div class="checkbox-row">
+            <input type="checkbox" value="${p.id}" class="test-eligible-checkbox" id="test-elig-${p.id}">
+            <label style="margin:0;" for="test-elig-${p.id}">${p.name}</label>
         </div>
     `).join("");
 }
@@ -283,11 +324,12 @@ async function loadPolls(){
 
     document.querySelector("#pollsTable tbody").innerHTML = polls.map(p => `
         <tr>
-            <td>${p.week_number ?? "(tiebreaker)"}</td>
+            <td>${p.week_number ?? (p.poll_type === "test" ? "(test)" : "(tiebreaker)")}</td>
             <td>${p.poll_type}</td>
             <td>${p.status}</td>
             <td>${new Date(p.closes_at).toLocaleString()}</td>
-            <td><button class="secondary view-votes-btn" data-id="${p.id}" style="margin:0; padding:6px 10px; font-size:0.75rem;">View Votes</button></td>
+            <td><button class="secondary small view-votes-btn" data-id="${p.id}">View Votes</button></td>
+            <td><button class="danger small delete-poll-btn" data-id="${p.id}">Delete</button></td>
         </tr>
     `).join("");
 
@@ -300,7 +342,40 @@ async function loadPolls(){
                 .map(c => `<tr><td>${c.player_name}</td><td>${c.vote_count}</td></tr>`).join("");
         });
     });
+
+    document.querySelectorAll(".delete-poll-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            if (!confirm("Delete this poll? If it was published, this also removes it from the public archive. This can't be undone.")) return;
+            const { error: delErr } = await supabase.rpc("delete_poll", { p_poll_id: btn.dataset.id });
+            if (delErr) { alert(delErr.message); return; }
+            await loadPolls();
+        });
+    });
 }
+
+/* ---------- test polls ---------- */
+document.getElementById("createTestPollBtn").addEventListener("click", async () => {
+    if (!currentSeasonId) return showMsg("testPollMsg", "Pick a season first.");
+    const eligiblePlayerIds = Array.from(document.querySelectorAll(".test-eligible-checkbox:checked")).map(c => c.value);
+    const duration = parseInt(document.getElementById("testDurationInput").value, 10) || 5;
+    if (eligiblePlayerIds.length < 2) {
+        return showMsg("testPollMsg", "Pick at least 2 players for the test.");
+    }
+
+    const { data: pollId, error } = await supabase.rpc("create_test_poll", {
+        p_season_id: currentSeasonId,
+        p_eligible_player_ids: eligiblePlayerIds,
+        p_duration_minutes: duration
+    });
+    if (error) return showMsg("testPollMsg", error.message);
+
+    const link = `potw.html?poll=${pollId}`;
+    showMsg("testPollMsg", "", true);
+    document.getElementById("testPollMsg").innerHTML =
+        `Test poll is live for ${duration} minute(s). <a href="${link}" target="_blank" style="color:var(--red);">Open it to vote →</a>`;
+    document.getElementById("testPollMsg").style.display = "block";
+    await loadPolls();
+});
 
 /* ---------- standings ---------- */
 document.getElementById("loadStandingsBtn").addEventListener("click", async () => {
