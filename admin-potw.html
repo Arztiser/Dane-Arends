@@ -54,7 +54,33 @@ th{ color:var(--muted); font-weight:600; font-size:0.72rem; text-transform:upper
 tbody tr:hover{ background:rgba(255,255,255,0.02); }
 td:last-child, th:last-child{ text-align:right; }
 
-.checkbox-row{ display:flex; align-items:center; gap:8px; padding:7px 0; }
+.checkbox-row{
+    display:flex; align-items:center; gap:10px; padding:9px 12px;
+    border:1px solid var(--line); border-radius:8px; margin-bottom:6px;
+    background:#0f0f0f; transition:0.15s; cursor:pointer;
+}
+.checkbox-row:hover{ border-color:#3a3a3a; }
+.checkbox-row:has(input:checked){ border-color:rgba(230,25,43,0.5); background:rgba(230,25,43,0.06); }
+.checkbox-row label{ margin:0; color:var(--white); font-size:0.9rem; cursor:pointer; flex:1; }
+
+.checkbox-row input[type="checkbox"]{
+    appearance:none; -webkit-appearance:none; margin:0; flex-shrink:0;
+    width:20px; height:20px; border:2px solid var(--line); border-radius:5px;
+    background:#0a0a0a; cursor:pointer; display:grid; place-content:center; transition:0.15s;
+}
+.checkbox-row input[type="checkbox"]:checked{ border-color:var(--red); background:rgba(230,25,43,0.15); }
+.checkbox-row input[type="checkbox"]:checked::after{
+    content:"✓"; color:var(--red); font-size:13px; font-weight:800; line-height:1;
+}
+
+.checklist{ margin-bottom:6px; }
+.checklist-header{ display:flex; justify-content:space-between; align-items:center; margin:14px 0 8px; }
+.checklist-actions{ display:flex; gap:14px; }
+.link-btn{
+    background:none; border:none; padding:0; margin:0; color:var(--muted);
+    font-family:Inter,sans-serif; font-size:0.78rem; text-decoration:underline; cursor:pointer;
+}
+.link-btn:hover{ color:var(--red); filter:none; }
 
 /* ---- login screen: its own centered mini-layout ---- */
 #loginScreen{
@@ -113,7 +139,7 @@ td:last-child, th:last-child{ text-align:right; }
     </div>
 
     <div class="card">
-        <h2>Players</h2>
+        <h2>Players — By Name</h2>
         <table id="playersTable"><thead><tr><th>Name</th><th>#</th><th></th></tr></thead><tbody></tbody></table>
         <label>Player name</label>
         <input type="text" id="newPlayerName">
@@ -132,6 +158,11 @@ td:last-child, th:last-child{ text-align:right; }
     </div>
 
     <div class="card">
+        <h2>Players — By Number</h2>
+        <table id="playersByNumberTable"><thead><tr><th>#</th><th>Name</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <div class="card">
         <h2>Create Weekly Poll</h2>
         <div class="field-row">
             <div>
@@ -143,8 +174,14 @@ td:last-child, th:last-child{ text-align:right; }
                 <input type="date" id="pollFridayDate">
             </div>
         </div>
-        <label>Eligible players</label>
-        <div id="eligiblePlayersList"></div>
+        <div class="checklist-header">
+            <label style="margin:0;">Eligible players</label>
+            <div class="checklist-actions">
+                <button type="button" class="link-btn" id="pollSelectAllBtn">Select All</button>
+                <button type="button" class="link-btn" id="pollClearAllBtn">Clear All</button>
+            </div>
+        </div>
+        <div id="eligiblePlayersList" class="checklist"></div>
         <button id="createPollBtn">Create Poll</button>
         <div class="msg" id="pollMsg" style="display:none;"></div>
         <div class="msg note" style="margin-top:14px;">
@@ -163,8 +200,14 @@ td:last-child, th:last-child{ text-align:right; }
             It's tagged as a test, so it never shows up in the public archive
             or counts toward season standings.
         </div>
-        <label>Eligible players for the test</label>
-        <div id="testPlayersList"></div>
+        <div class="checklist-header">
+            <label style="margin:0;">Eligible players for the test</label>
+            <div class="checklist-actions">
+                <button type="button" class="link-btn" id="testSelectAllBtn">Select All</button>
+                <button type="button" class="link-btn" id="testClearAllBtn">Clear All</button>
+            </div>
+        </div>
+        <div id="testPlayersList" class="checklist"></div>
         <label>Voting stays open for (minutes)</label>
         <input type="number" id="testDurationInput" value="5" min="1" max="120">
         <button id="createTestPollBtn">Create Test Poll</button>
@@ -194,8 +237,8 @@ td:last-child, th:last-child{ text-align:right; }
 /* =========================================================
    CONFIG — same project as potw.html
    ========================================================= */
-const SUPABASE_URL = "https://glknsdyjqftdlrqvmqan.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdsa25zZHlqcWZ0ZGxycXZtcWFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzNTE3MzUsImV4cCI6MjEwNDkyNzczNX0.KxcFJXwiL6W3-20M7RixMzH8z8XtCgnDTvxRlnaQ_Vc";
+const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR-ANON-KEY";
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -239,11 +282,19 @@ async function boot(){
         return;
     }
 
-    document.getElementById("loginCard").style.display = "none";
-    document.getElementById("app").style.display = "block";
     document.getElementById("whoAmI").textContent = "Signed in as " + session.user.email;
 
+    // Load the dashboard's data BEFORE revealing it, so it appears
+    // fully-formed right away instead of popping in empty.
     await loadSeasons();
+
+    // Hide the whole login screen wrapper, not just the card inside it —
+    // the wrapper enforces a full-viewport min-height for centering, so
+    // leaving it visible left an empty screen's worth of space above the
+    // dashboard, which is why it looked like you had to scroll to find it.
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    window.scrollTo(0, 0);
 }
 
 /* ---------- seasons ---------- */
@@ -296,10 +347,12 @@ async function loadPlayers(){
     if (error) return showMsg("playerMsg", error.message);
 
     currentPlayers = players;
+
+    // --- by name (this is the management table: add/remove lives here) ---
     document.querySelector("#playersTable tbody").innerHTML = players.map(p => `
         <tr>
             <td>${p.name}</td>
-            <td>${p.jersey_number ?? ""}</td>
+            <td>${p.jersey_number ?? "—"}</td>
             <td><button class="danger small delete-player-btn" data-id="${p.id}" data-name="${p.name}">Remove</button></td>
         </tr>
     `).join("");
@@ -314,21 +367,39 @@ async function loadPlayers(){
         });
     });
 
-    const eligibleHtml = players.map(p => `
+    // --- by number (read-only reference view; unnumbered players sort last) ---
+    const byNumber = [...players].sort((a, b) => {
+        if (a.jersey_number == null) return 1;
+        if (b.jersey_number == null) return -1;
+        return a.jersey_number - b.jersey_number;
+    });
+    document.querySelector("#playersByNumberTable tbody").innerHTML = byNumber.map(p => `
+        <tr><td>${p.jersey_number ?? "—"}</td><td>${p.name}</td></tr>
+    `).join("");
+
+    // --- eligible-player checklists (poll creation + test polls) ---
+    document.getElementById("eligiblePlayersList").innerHTML = players.map(p => `
         <div class="checkbox-row">
             <input type="checkbox" value="${p.id}" class="eligible-checkbox" id="elig-${p.id}">
-            <label style="margin:0;" for="elig-${p.id}">${p.name}</label>
+            <label for="elig-${p.id}">${p.name}${p.jersey_number != null ? ` <span style="color:var(--muted);">#${p.jersey_number}</span>` : ""}</label>
         </div>
     `).join("");
-    document.getElementById("eligiblePlayersList").innerHTML = eligibleHtml;
 
     document.getElementById("testPlayersList").innerHTML = players.map(p => `
         <div class="checkbox-row">
             <input type="checkbox" value="${p.id}" class="test-eligible-checkbox" id="test-elig-${p.id}">
-            <label style="margin:0;" for="test-elig-${p.id}">${p.name}</label>
+            <label for="test-elig-${p.id}">${p.name}${p.jersey_number != null ? ` <span style="color:var(--muted);">#${p.jersey_number}</span>` : ""}</label>
         </div>
     `).join("");
 }
+
+function setAllChecked(selector, checked){
+    document.querySelectorAll(selector).forEach(cb => { cb.checked = checked; });
+}
+document.getElementById("pollSelectAllBtn").addEventListener("click", () => setAllChecked(".eligible-checkbox", true));
+document.getElementById("pollClearAllBtn").addEventListener("click", () => setAllChecked(".eligible-checkbox", false));
+document.getElementById("testSelectAllBtn").addEventListener("click", () => setAllChecked(".test-eligible-checkbox", true));
+document.getElementById("testClearAllBtn").addEventListener("click", () => setAllChecked(".test-eligible-checkbox", false));
 
 document.getElementById("createPlayerBtn").addEventListener("click", async () => {
     if (!currentSeasonId) return showMsg("playerMsg", "Pick a season first.");
