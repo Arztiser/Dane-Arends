@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dane Arends | Sports Manager</title>
+<title>Dane Arends | High School Sports Manager — Basketball & Baseball</title>
 <!-- SEO -->
 <meta name="description" content="Official website of Dane Arends, High School Sports Manager. Basketball, baseball, leadership, game-day operations, and behind-the-scenes sports management.">
 <meta name="robots" content="index, follow">
@@ -528,6 +528,76 @@ section{
 #archiveNotice.show{
     opacity:1;
 }
+
+/* ===== PLAYER OF THE WEEK VOTING CTA =====
+   Hidden by default (see the dated script block near the bottom of
+   the page) — only shown between the configured start/end dates. */
+.potw-banner{
+    max-width:700px;
+    margin:0 auto;
+    background:var(--dark);
+    border:1px solid #222;
+    border-left:4px solid var(--red);
+    border-radius:14px;
+    padding:30px 30px;
+    text-align:center;
+    box-shadow:0 0 25px rgba(230,25,43,0.10);
+}
+
+.potw-eyebrow{
+    font-family:"Bebas Neue";
+    color:var(--red);
+    letter-spacing:2px;
+    font-size:0.95rem;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin-bottom:12px;
+}
+
+.potw-eyebrow .pulse-dot{
+    width:8px;
+    height:8px;
+    background:var(--red);
+    border-radius:50%;
+    display:inline-block;
+    animation:pulseDot 1.6s infinite;
+}
+
+.potw-heading{
+    font-family:"Bebas Neue";
+    font-size:1.8rem;
+    letter-spacing:1px;
+    margin-bottom:10px;
+}
+
+.potw-sub{
+    color:var(--text);
+    margin-bottom:22px;
+    font-size:0.95rem;
+    line-height:1.5;
+}
+
+.potw-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    background:var(--red);
+    color:#fff;
+    text-decoration:none;
+    font-family:"Bebas Neue";
+    letter-spacing:1px;
+    font-size:1.05rem;
+    padding:14px 30px;
+    border-radius:10px;
+    transition:0.3s;
+}
+
+.potw-btn:hover{
+    transform:translateY(-3px);
+    box-shadow:0 8px 20px rgba(230,25,43,0.35);
+}
     
 </style>
 </head>
@@ -561,6 +631,17 @@ section{
 <h2>HIGH SCHOOL SPORTS MANAGER</h2>
 </div>
 </header>
+
+<!-- PLAYER OF THE WEEK VOTING CTA — visibility controlled by dated
+     script near the bottom of the page; hidden outside the window -->
+<section id="potwSection" style="display:none;">
+    <div class="potw-banner">
+        <div class="potw-eyebrow"><span class="pulse-dot"></span> FAN VOTING OPEN</div>
+        <h3 class="potw-heading">PEOPLE'S CHOICE PLAYER OF THE WEEK</h3>
+        <p class="potw-sub">Cast your vote for this week's standout player — new poll every week during the season.</p>
+        <a href="potw.html" class="potw-btn">Vote Now <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+</section>
 
 <!-- ABOUT -->
 <section class="about">
@@ -701,6 +782,28 @@ function updateClock(){
 }
 setInterval(updateClock,1000);
 updateClock();
+
+/* ===== PLAYER OF THE WEEK VOTING BUTTON — EDIT DATES HERE =====
+   The banner/button above (in the "PLAYER OF THE WEEK VOTING CTA"
+   section, right after the intro) only shows between these two
+   dates, inclusive. To change the window — e.g. for a new season —
+   just edit the two dates below and re-save this file.
+
+   Format: "YYYY-MM-DDTHH:MM:SS" in the LOCAL time of whoever is
+   viewing the page (this only controls a promotional button, not
+   anything security-sensitive, so it doesn't need to be tied to a
+   single timezone the way the actual poll open/close times are). */
+const POTW_BUTTON_START = new Date("2026-12-04T00:00:00"); // Fri, Dec 4, 2026
+const POTW_BUTTON_END   = new Date("2027-01-26T23:59:59"); // Tue, Jan 26, 2027
+
+(function togglePotwButton(){
+    const section = document.getElementById("potwSection");
+    if(!section) return;
+    const now = new Date();
+    if(now >= POTW_BUTTON_START && now <= POTW_BUTTON_END){
+        section.style.display = "block";
+    }
+})();
 
     /* SECRET PHOTO ARCHIVE */
 
