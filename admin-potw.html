@@ -126,13 +126,27 @@ td:last-child, th:last-child{ text-align:right; }
 
     <div class="card">
         <h2>Seasons</h2>
-        <table id="seasonsTable"><thead><tr><th>Label</th><th>Starts</th><th>Active</th></tr></thead><tbody></tbody></table>
+        <table id="seasonsTable"><thead><tr><th>Label</th><th>Starts</th><th>Ends on</th><th>Active</th><th></th></tr></thead><tbody></tbody></table>
         <label>New season label</label>
         <input type="text" id="newSeasonLabel" placeholder="2026–27 Season">
-        <label>Starts on</label>
-        <input type="date" id="newSeasonStart">
+        <div class="field-row">
+            <div>
+                <label>Starts on</label>
+                <input type="date" id="newSeasonStart">
+            </div>
+            <div>
+                <label>Ends on (optional)</label>
+                <input type="date" id="newSeasonEnd">
+            </div>
+        </div>
         <button id="createSeasonBtn">Create Season</button>
         <div class="msg" id="seasonMsg" style="display:none;"></div>
+        <div class="msg note" style="margin-top:14px;">
+            Once a season's end date arrives, it's automatically marked
+            concluded — that's what makes the People's Choice Player of the
+            Season winner appear publicly. Leave "Ends on" blank if you'd
+            rather end it manually later.
+        </div>
 
         <label style="margin-top:20px;">Active season for the rest of this dashboard</label>
         <select id="seasonSelect"></select>
@@ -170,7 +184,7 @@ td:last-child, th:last-child{ text-align:right; }
                 <input type="number" id="pollWeekNumber">
             </div>
             <div>
-                <label>Friday voting opens (10:00 PM Central)</label>
+                <label>Friday date (used for the default schedule below)</label>
                 <input type="date" id="pollFridayDate">
             </div>
         </div>
@@ -185,9 +199,31 @@ td:last-child, th:last-child{ text-align:right; }
         <button id="createPollBtn">Create Poll</button>
         <div class="msg" id="pollMsg" style="display:none;"></div>
         <div class="msg note" style="margin-top:14px;">
-            Schedule is computed automatically: opens Friday 10:00 PM, closes the
-            following Wednesday 12:00 AM, publishes that Wednesday 8:00 AM — all
-            Central Time, DST-aware.
+            By default: opens Friday 10:00 PM, closes the following Wednesday
+            12:00 AM, publishes that Wednesday 8:00 AM — all Central Time,
+            DST-aware. Leave any custom time below blank to keep that part
+            of the default schedule.
+        </div>
+
+        <div class="checklist-header" style="margin-top:22px;">
+            <label style="margin:0;">Custom schedule (optional)</label>
+        </div>
+        <div class="field-row">
+            <div>
+                <label>Custom opens at</label>
+                <input type="datetime-local" id="pollCustomOpens">
+            </div>
+            <div>
+                <label>Custom closes at</label>
+                <input type="datetime-local" id="pollCustomCloses">
+            </div>
+        </div>
+        <label>Custom publish at</label>
+        <input type="datetime-local" id="pollCustomPublish">
+        <div class="msg note" style="margin-top:10px;">
+            All three fields here are Central Time, same as the default
+            schedule — entered as your own local wall-clock time for that
+            moment, not converted from your browser's timezone.
         </div>
     </div>
 
@@ -237,8 +273,8 @@ td:last-child, th:last-child{ text-align:right; }
 /* =========================================================
    CONFIG — same project as potw.html
    ========================================================= */
-const SUPABASE_URL = "https://glknsdyjqftdlrqvmqan.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdsa25zZHlqcWZ0ZGxycXZtcWFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzNTE3MzUsImV4cCI6MjEwNDkyNzczNX0.KxcFJXwiL6W3-20M7RixMzH8z8XtCgnDTvxRlnaQ_Vc";
+const SUPABASE_URL = "https://glknsdyjqftdlrqvmqan.supabase.co";";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdsa25zZHlqcWZ0ZGxycXZtcWFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzNTE3MzUsImV4cCI6MjEwNDk";
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -306,9 +342,44 @@ async function loadSeasons(){
     if (error) return showMsg("seasonMsg", error.message);
 
     const tbody = document.querySelector("#seasonsTable tbody");
-    tbody.innerHTML = seasons.map(s =>
-        `<tr><td>${s.label}</td><td>${s.starts_on}</td><td>${s.is_active ? "Yes" : "No"}</td></tr>`
-    ).join("");
+    tbody.innerHTML = seasons.map(s => `
+        <tr>
+            <td>${s.label}</td>
+            <td>${s.starts_on}</td>
+            <td>
+                <input type="date" class="season-end-input" data-id="${s.id}" value="${s.ends_on ?? ""}" style="width:150px; display:inline-block; margin-right:6px;">
+                <button class="secondary small save-end-btn" data-id="${s.id}">Save</button>
+            </td>
+            <td>${s.is_active ? "Yes" : "No"}</td>
+            <td><button class="danger small delete-season-btn" data-id="${s.id}" data-label="${s.label}">Delete</button></td>
+        </tr>
+    `).join("");
+
+    document.querySelectorAll(".save-end-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            const input = document.querySelector(`.season-end-input[data-id="${btn.dataset.id}"]`);
+            const { error: updErr } = await supabase
+                .from("seasons")
+                .update({ ends_on: input.value || null })
+                .eq("id", btn.dataset.id);
+            if (updErr) return showMsg("seasonMsg", updErr.message);
+            showMsg("seasonMsg", "End date updated.", true);
+            await loadSeasons();
+        });
+    });
+
+    document.querySelectorAll(".delete-season-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+            const confirmed = confirm(
+                `Delete "${btn.dataset.label}"? This permanently deletes every player, poll, and vote in this season. This can't be undone.`
+            );
+            if (!confirmed) return;
+            const { error: delErr } = await supabase.rpc("delete_season", { p_season_id: btn.dataset.id });
+            if (delErr) { alert(delErr.message); return; }
+            currentSeasonId = null;
+            await loadSeasons();
+        });
+    });
 
     const select = document.getElementById("seasonSelect");
     select.innerHTML = seasons.map(s => `<option value="${s.id}">${s.label} (${s.id})</option>`).join("");
@@ -323,16 +394,23 @@ async function loadSeasons(){
         select.value = currentSeasonId;
         await loadPlayers();
         await loadPolls();
+    } else {
+        document.querySelector("#playersTable tbody").innerHTML = "";
+        document.querySelector("#playersByNumberTable tbody").innerHTML = "";
+        document.querySelector("#pollsTable tbody").innerHTML = "";
     }
 }
 
 document.getElementById("createSeasonBtn").addEventListener("click", async () => {
     const label = document.getElementById("newSeasonLabel").value.trim();
     const starts_on = document.getElementById("newSeasonStart").value;
+    const ends_on = document.getElementById("newSeasonEnd").value || null;
     if (!label || !starts_on) return showMsg("seasonMsg", "Label and start date required.");
-    const { error } = await supabase.from("seasons").insert({ label, starts_on });
+    const { error } = await supabase.from("seasons").insert({ label, starts_on, ends_on });
     if (error) return showMsg("seasonMsg", error.message);
     showMsg("seasonMsg", "Season created.", true);
+    document.getElementById("newSeasonLabel").value = "";
+    document.getElementById("newSeasonEnd").value = "";
     await loadSeasons();
 });
 
@@ -427,14 +505,27 @@ document.getElementById("createPollBtn").addEventListener("click", async () => {
         return showMsg("pollMsg", "Week number, Friday date, and at least 2 eligible players required.");
     }
 
+    // datetime-local gives "YYYY-MM-DDTHH:MM" with no timezone — that's
+    // intentional here, it's interpreted as Central Time server-side,
+    // same as the default schedule. Empty means "use the default."
+    const customOpens = document.getElementById("pollCustomOpens").value || null;
+    const customCloses = document.getElementById("pollCustomCloses").value || null;
+    const customPublish = document.getElementById("pollCustomPublish").value || null;
+
     const { error } = await supabase.rpc("create_weekly_poll", {
         p_season_id: currentSeasonId,
         p_week_number: weekNumber,
         p_friday_date: fridayDate,
-        p_eligible_player_ids: eligiblePlayerIds
+        p_eligible_player_ids: eligiblePlayerIds,
+        p_custom_opens_at: customOpens,
+        p_custom_closes_at: customCloses,
+        p_custom_publish_at: customPublish
     });
     if (error) return showMsg("pollMsg", error.message);
     showMsg("pollMsg", "Poll created.", true);
+    document.getElementById("pollCustomOpens").value = "";
+    document.getElementById("pollCustomCloses").value = "";
+    document.getElementById("pollCustomPublish").value = "";
     await loadPolls();
 });
 
